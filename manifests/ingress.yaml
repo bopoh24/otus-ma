@@ -12,8 +12,8 @@ spec:
     - host: arch.homework
     - http:
         paths:
-          - path: /otusapp/([^/]+)/health
-            pathType: Prefix
+          - path: /otusapp/([^/]+)/health/?$
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: my-app-service
