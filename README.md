@@ -1,13 +1,27 @@
-# Homework 1
+# Homework 2
 
-Docker image with simple server
 
-To build image run:
+## Должен работать rewrite:
+
+    curl arch.homework/otusapp/aeugene/health -> рерайт пути на arch.homework/health 
+
+
+
+Применить манифесты можно командой, создает неймспейс "app" и применяет манифесты:
+
+    make apply
+
+Удалить неймспейc "app" можно командой:
+
+    make delete
+
+
+Билд образа:
 
     make image_build
 
 
-To push image to docker hub run:
+Пуш образа:
 
     make image_push
 

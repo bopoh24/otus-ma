@@ -7,25 +7,26 @@ help: ### this help information
 	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
-image_build: test ### build docker image
+image_build: ### build docker image
 	@echo "Building image..."
 	docker build --platform linux/amd64 -t ${IMAGE_NAME} .
 	@echo "Image built successfully!"
-.PHONY:build
+.PHONY:image_build
 
 image_push:
 	@echo "Pushing image..."
 	docker push ${IMAGE_NAME}
 	@echo "Image pushed successfully!"
+.PHONY:image_push
 
-
-test: ### run tests
-	@echo "Running tests..."
-	go test --cover -timeout 30s ./...
+apply: ### create namespace "app" and apply k8s manifests
+	@echo "Applying k8s manifests..."
+	@kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -f ./manifests
 	@echo "Done!"
-.PHONY:test
+.PHONY:apply
 
-run: ### run app
-	@echo "Running app..."
-	go run ./cmd/app
-.PHONY:run
+delete: ### delete namespace "app"
+	@echo "Deleting k8s manifests..."
+	kubectl delete ns app
+.PHONY:delete
