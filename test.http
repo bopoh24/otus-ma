@@ -1,1 +1,30 @@
-GET http://localhost:8000/health/
+POST http://localhost:8000/user
+Content-Type: application/json
+
+{
+  "username": "johndoe589",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "bestjohn@doe.com",
+  "phone": "+71002003040"
+}
+
+###
+GET http://localhost:8000/user/1
+
+
+###
+PUT http://localhost:8000/user/1
+Content-Type: application/json
+
+{
+  "username": "johndoe589",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "ddd@ddd",
+    "phone": "+71002003040"
+}
+
+
+###
+DELETE http://localhost:8000/user/1

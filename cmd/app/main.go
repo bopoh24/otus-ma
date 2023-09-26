@@ -1,27 +1,28 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"github.com/bopoh24/ma_1/internal/config"
+	"github.com/bopoh24/ma_1/internal/repository/memory"
+	"github.com/bopoh24/ma_1/internal/service"
+	"log/slog"
+	"os"
 )
 
 func main() {
-	log.Printf("starting server on port 8000")
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, err := w.Write([]byte(`{"status": "OK"}`))
-		if err != nil {
-			log.Printf("error writing response body: %v", err)
-		} else {
-			log.Printf("responded to health check request")
-		}
-	})
-	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	http.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
+	// init logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	// init config
+	cfg, err := config.New()
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	// init repository
+	repo := memory.New()
 
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	srv := service.NewUserService(cfg, repo)
+	if err := srv.Run(); err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 }

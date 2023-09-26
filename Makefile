@@ -30,3 +30,9 @@ delete: ### delete namespace "app"
 	@echo "Deleting k8s manifests..."
 	kubectl delete ns app
 .PHONY:delete
+
+
+newman: ### run newman tests
+	@echo "Running newman tests..."
+	newman run postman.json
+.PHONY:newman
