@@ -36,3 +36,23 @@ newman: ### run newman tests
 	@echo "Running newman tests..."
 	newman run postman.json
 .PHONY:newman
+
+
+helm_install_postgres: ### help install postgresql
+	@kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
+	kubectl apply -f manifests/pvc
+	@echo "Installing postgresql..."
+	helm install postgresql bitnami/postgresql -n app \
+	--set primary.persistence.existingClaim=postgres-pvc \
+	--set volumePermissions.enabled=true \
+	--set global.postgresql.auth.postgresPassword=postgres \
+	--set global.postgresql.auth.username=postgres \
+	--set global.postgresql.auth.password=postgres \
+	--set global.postgresql.auth.database=simple-server-db
+.PHONY:helm_install_postgres
+
+helm_delete_postgres: ### help delete postgresql
+	@echo "Deleting postgresql..."
+	helm delete postgresql -n app
+	kubectl delete pvc -n app postgres-pvc
+	kubectl delete pv -n app postgres-pv

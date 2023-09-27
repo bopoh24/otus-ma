@@ -1,9 +1,22 @@
-# Homework 2
+# Homework 3
 
 
-## Должен работать rewrite:
+### Зависимости
 
-    curl arch.homework/otusapp/aeugene/health -> рерайт пути на arch.homework/health 
+    brew install helm
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+
+### Установка PostgreSQL
+
+    make helm_install_postgres
+
+
+### Удаление PostgreSQL
+
+    make helm_delete_postgres
+
+
+
 
 
 

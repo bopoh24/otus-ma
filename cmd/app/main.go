@@ -17,6 +17,7 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	logger.Info("App started")
 	// init repository
 	repo := memory.New()
 

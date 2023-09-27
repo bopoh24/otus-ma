@@ -11,7 +11,7 @@ type Postgres struct {
 }
 
 type Server struct {
-	Host string `env:"SERVER_HOST" env-default:"localhost"`
+	Host string `env:"SERVER_HOST" env-default:""`
 	Port string `env:"SERVER_PORT" env-default:"8000"`
 }
 
