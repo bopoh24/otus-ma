@@ -1,8 +1,8 @@
-POST http://localhost/user
+POST http://localhost:8000/user
 Content-Type: application/json
 
 {
-  "username": "johndoe589",
+  "username": "username1",
   "firstName": "John",
   "lastName": "Doe",
   "email": "bestjohn@doe.com",
@@ -10,21 +10,21 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost/user/1
+GET http://localhost:8000/user/4
 
 
 ###
-PUT http://localhost/user/1
+PUT http://localhost:8000/user/4
 Content-Type: application/json
 
 {
-  "username": "johndoe589",
+  "username": "username2",
   "firstName": "John",
   "lastName": "Doe",
-  "email": "ddd@ddd",
-    "phone": "+71002003040"
+  "email": "dd23123d@ddd.com",
+  "phone": "+71002003040"
 }
 
 
 ###
-DELETE http://localhost/user/1
+DELETE http://localhost:8000/user/4

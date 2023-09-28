@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/bopoh24/ma_1/internal/config"
-	"github.com/bopoh24/ma_1/internal/repository/memory"
+	"github.com/bopoh24/ma_1/internal/repository/pg"
 	"github.com/bopoh24/ma_1/internal/service"
 	"log/slog"
 	"os"
@@ -19,8 +19,11 @@ func main() {
 	}
 	logger.Info("App started")
 	// init repository
-	repo := memory.New()
-
+	repo, err := pg.New(cfg.Postgres)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 	srv := service.NewUserService(cfg, repo)
 	if err := srv.Run(); err != nil {
 		logger.Error(err.Error())

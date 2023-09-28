@@ -1,3 +1,4 @@
+include .env
 IMAGE_NAME=bopoh24/simple_server:latest
 
 # HELP =================================================================================================================
@@ -45,10 +46,10 @@ helm_install_postgres: ### help install postgresql
 	helm install postgresql bitnami/postgresql -n app \
 	--set primary.persistence.existingClaim=postgres-pvc \
 	--set volumePermissions.enabled=true \
-	--set global.postgresql.auth.postgresPassword=postgres \
-	--set global.postgresql.auth.username=postgres \
-	--set global.postgresql.auth.password=postgres \
-	--set global.postgresql.auth.database=simple-server-db
+	--set global.postgresql.auth.postgresPassword=${POSTGRES_PASSWORD} \
+	--set global.postgresql.auth.username=${POSTGRES_USER} \
+	--set global.postgresql.auth.password=${POSTGRES_PASSWORD} \
+	--set global.postgresql.auth.database=${POSTGRES_DB}
 .PHONY:helm_install_postgres
 
 helm_delete_postgres: ### help delete postgresql
@@ -56,3 +57,10 @@ helm_delete_postgres: ### help delete postgresql
 	helm delete postgresql -n app
 	kubectl delete pvc -n app postgres-pvc
 	kubectl delete pv -n app postgres-pv
+
+
+migrate_up: ### apply migrations to database
+	migrate -path migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost/${POSTGRES_DB}?sslmode=disable up
+
+migrate_down: ### rollback migrations from database
+	migrate -path migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost/${POSTGRES_DB}?sslmode=disable down
