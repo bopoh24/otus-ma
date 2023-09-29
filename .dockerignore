@@ -2,6 +2,13 @@
 .idea
 .gitignore
 README.md
-Makefile
+pg_values.yaml
 test.http
+Makefile
+manifests
+migrations
+newman
+
+
+
 
