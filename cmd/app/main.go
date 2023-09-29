@@ -8,16 +8,33 @@ import (
 	"os"
 )
 
+func initLogLevel(level string) slog.Level {
+	var logLevel slog.Level
+	switch level {
+	case "debug":
+		logLevel = slog.LevelDebug
+	case "info":
+		logLevel = slog.LevelInfo
+	case "warn":
+		logLevel = slog.LevelWarn
+	default:
+		logLevel = slog.LevelError
+	}
+	return logLevel
+}
+
 func main() {
-	// init logger
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	// init config
 	cfg, err := config.New()
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		panic(err)
 	}
-	logger.Info("App started")
+	// init logger
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: initLogLevel(cfg.App.LogLevel),
+	}))
+
+	logger.Info("App started", slog.With("name", cfg.App.Name))
 	// init repository
 	repo, err := pg.New(cfg.Postgres)
 	if err != nil {

@@ -29,7 +29,37 @@ spec:
             httpGet:
               path: /readyz
               port: 8000
+          env:
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: my-app-configmap
+                  key: app_name
 
+            - name: APP_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: my-app-configmap
+                  key: app_log_level
 
+            - name: POSTGRES_HOST
+              value: postgresql
 
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db-username
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db-password
 

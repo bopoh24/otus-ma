@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-migrate
+  namespace: app
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate-container
+          image: bopoh24/simple_server_migrate:latest
+          env:
+            - name: POSTGRES_HOST
+              value: postgresql
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db-username
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-app-secret
+                  key: db-password
+          command: ["migrate", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up"]
+

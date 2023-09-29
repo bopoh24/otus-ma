@@ -1,5 +1,5 @@
-include .env
-IMAGE_NAME=bopoh24/simple_server:latest
+APP_IMAGE_NAME=bopoh24/simple_server:latest
+MIGRATE_IMAGE_NAME=bopoh24/simple_server_migrate:latest
 
 # HELP =================================================================================================================
 # This will output the help for each task
@@ -8,59 +8,62 @@ help: ### this help information
 	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
-image_build: ### build docker image
-	@echo "Building image..."
-	docker build --platform linux/amd64 -t ${IMAGE_NAME} .
-	@echo "Image built successfully!"
+up: helm_install_postgres manifests_apply ### create namespace "app" and run app
+.PHONY:up
+
+down: helm_delete_postgres manifests_delete ### stop app and delete namespace "app"
+	@echo "Done!"
+.PHONY:down
+
+build: build_image_app build_image_migrate ### build docker images
 .PHONY:image_build
 
-image_push:
-	@echo "Pushing image..."
-	docker push ${IMAGE_NAME}
-	@echo "Image pushed successfully!"
-.PHONY:image_push
+build_image_app: ### build app docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${APP_IMAGE_NAME} -f app.dockerfile .
+	@echo "Image built successfully!"
+.PHONY:build_image_app
 
-apply: ### create namespace "app" and apply k8s manifests
+build_image_migrate: ### build migrations docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${MIGRATE_IMAGE_NAME} -f migrate.dockerfile .
+	@echo "Image built successfully!"
+.PHONY:build_image_migrate
+
+push_images: ### push docker images to docker hub
+	@echo "Pushing image..."
+	docker push ${APP_IMAGE_NAME}
+	docker push ${MIGRATE_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:push_images
+
+manifests_apply: ### create namespace "app" and apply k8s manifests
 	@echo "Applying k8s manifests..."
 	@kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f ./manifests
 	@echo "Done!"
-.PHONY:apply
+.PHONY:manifests_apply
 
-delete: ### delete namespace "app"
+manifests_delete: ### delete namespace "app"
 	@echo "Deleting k8s manifests..."
 	kubectl delete ns app
-.PHONY:delete
+.PHONY:manifests_delete
 
-
-newman: ### run newman tests
-	@echo "Running newman tests..."
-	newman run postman.json
-.PHONY:newman
-
-
-helm_install_postgres: ### help install postgresql
+helm_install_postgres: ### install postgresql
 	@kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f manifests/pvc
 	@echo "Installing postgresql..."
-	helm install postgresql bitnami/postgresql -n app \
-	--set primary.persistence.existingClaim=postgres-pvc \
-	--set volumePermissions.enabled=true \
-	--set global.postgresql.auth.postgresPassword=${POSTGRES_PASSWORD} \
-	--set global.postgresql.auth.username=${POSTGRES_USER} \
-	--set global.postgresql.auth.password=${POSTGRES_PASSWORD} \
-	--set global.postgresql.auth.database=${POSTGRES_DB}
+	helm install postgresql bitnami/postgresql -n app -f values.yaml
 .PHONY:helm_install_postgres
 
-helm_delete_postgres: ### help delete postgresql
+helm_delete_postgres: ### delete postgresql
 	@echo "Deleting postgresql..."
 	helm delete postgresql -n app
 	kubectl delete pvc -n app postgres-pvc
 	kubectl delete pv -n app postgres-pv
+.PHONY:helm_delete_postgres
 
-
-migrate_up: ### apply migrations to database
-	migrate -path migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost/${POSTGRES_DB}?sslmode=disable up
-
-migrate_down: ### rollback migrations from database
-	migrate -path migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost/${POSTGRES_DB}?sslmode=disable down
+newman: ### run newman tests
+	@echo "Running newman tests..."
+	newman run newman/postman.json
+.PHONY:newman

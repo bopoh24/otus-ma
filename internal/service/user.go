@@ -8,7 +8,6 @@ import (
 	"github.com/bopoh24/ma_1/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net"
 	"net/http"
 	"strconv"
 )
@@ -47,7 +46,7 @@ func (s *UserService) Run() error {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	return http.ListenAndServe(net.JoinHostPort(s.conf.Server.Host, s.conf.Server.Port), r)
+	return http.ListenAndServe(":8000", r)
 }
 
 // UserCreate creates a new user

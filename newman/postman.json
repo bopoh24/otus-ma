@@ -22,11 +22,13 @@
 					}
 				},
 				"url": {
-					"raw": "http://arch.homework/user",
+					"raw": "http://127.0.0.1/user",
 					"protocol": "http",
 					"host": [
-						"arch",
-						"homework"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"user"
@@ -50,14 +52,17 @@
 					}
 				},
 				"url": {
-					"raw": "http://arch.homework/user",
+					"raw": "http://127.0.0.1/user/1",
 					"protocol": "http",
 					"host": [
-						"arch",
-						"homework"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
-						"user"
+						"user",
+						"1"
 					]
 				}
 			},
@@ -69,11 +74,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://arch.homework/user/1",
+					"raw": "http://127.0.0.1/user/1",
 					"protocol": "http",
 					"host": [
-						"arch",
-						"homework"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"user",
@@ -89,11 +96,13 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "http://arch.homework/user/1",
+					"raw": "http://127.0.0.1/user/1",
 					"protocol": "http",
 					"host": [
-						"arch",
-						"homework"
+						"127",
+						"0",
+						"0",
+						"1"
 					],
 					"path": [
 						"user",
