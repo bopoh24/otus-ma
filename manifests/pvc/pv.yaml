@@ -6,9 +6,9 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: manual
+  storageClassName: standard
   capacity:
-    storage: 300Mi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:

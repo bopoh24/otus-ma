@@ -8,7 +8,7 @@ help: ### this help information
 	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
-up: helm_install_postgres manifests_apply ### create namespace "app" and run app
+up: manifests_init helm_install_postgres manifests_apply ### create namespace "app" and run app
 .PHONY:up
 
 down: helm_delete_postgres manifests_delete ### stop app and delete namespace "app"
@@ -49,18 +49,23 @@ manifests_delete: ### delete namespace "app"
 	kubectl delete ns app
 .PHONY:manifests_delete
 
-helm_install_postgres: ### install postgresql
-	@kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
+manifests_init:
+	@echo "Creating namespace..."
+	kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
+	@echo "Applying secrets and configmap..."
+	kubectl apply -f manifests/conf
+	@echo "Applying PV and PVC..."
 	kubectl apply -f manifests/pvc
+.PHONY:manifests_init
+
+helm_install_postgres: ### install postgresql
 	@echo "Installing postgresql..."
-	helm install postgresql bitnami/postgresql -n app -f values.yaml
+	helm install postgresql bitnami/postgresql -n app -f pg_values.yaml
 .PHONY:helm_install_postgres
 
 helm_delete_postgres: ### delete postgresql
 	@echo "Deleting postgresql..."
 	helm delete postgresql -n app
-	kubectl delete pvc -n app postgres-pvc
-	kubectl delete pv -n app postgres-pv
 .PHONY:helm_delete_postgres
 
 newman: ### run newman tests

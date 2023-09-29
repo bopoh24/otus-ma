@@ -10,11 +10,11 @@ Content-Type: application/json
 }
 
 ###
-GET http://arch.homework/user/1
+GET http://localhost/user/1
 
 
 ###
-PUT http://localhost/user/4
+PUT http://localhost/user/1
 Content-Type: application/json
 
 {
@@ -27,4 +27,4 @@ Content-Type: application/json
 
 
 ###
-DELETE http://localhost/user/4
+DELETE http://localhost/user/1
