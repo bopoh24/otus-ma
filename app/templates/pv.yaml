@@ -1,0 +1,18 @@
+{{- if .Values.pv.enabled -}}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.pv.name }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.pv.storageClass }}
+  capacity:
+    storage: {{ .Values.pv.size }}
+  accessModes:
+    {{- range .Values.pv.accessModes }}
+    - {{ . }}
+    {{- end }}
+  hostPath:
+    path: {{ .Values.pv.path }}
+{{- end }}
