@@ -1,4 +1,23 @@
 # Homework 3
+## Простой CRUD сервис с использованием PostgreSQL 
+
+## Helm
+
+#### `./chart` - шаблонизация приложения в helm чартах
+
+### Запуск приложения
+
+    make helm_up
+
+### Остановка приложения
+    
+    make helm_down
+
+
+
+## Kubernetes манифесты
+
+#### `./manifests` - все манифесты
 
 
 ### Запуск приложения
@@ -9,17 +28,17 @@
     
     make down
 
-### Все манифесты в папке `manifests`
+
+## Тестирование
+
+#### `./newnan` - коллекция Postman и результаты тестирования
 
 
-### Коллкция Postman и результаты тестирования в папке `newnan`
 
 
-На MacOS не получается сделать запросы по hostname, поэтому 127.0.0.1
+#### Установка PostgreSQL (см. Makefile)
 
-### Установка PostgreSQL (make helm_install_postgres)
-
-    helm install postgresql bitnami/postgresql -n app -f pg_values.yaml
+    helm install postgresql bitnami/postgresql -n app --version 12.12.10 -f pg_values.yaml
 
  
 #### Зависимости
@@ -27,5 +46,7 @@
     brew install helm
     helm repo add bitnami https://charts.bitnami.com/bitnami
 
+## Остальные команды
 
+    make help
 

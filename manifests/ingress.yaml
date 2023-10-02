@@ -6,7 +6,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: arch.homework
+    - host: "arch.homework"
     - http:
         paths:
           - path: /user

@@ -10,7 +10,7 @@ Content-Type: application/json
 }
 
 ###
-GET http://arch.homework/user/2
+GET http://arch.homework/user/1
 
 
 ###
@@ -27,4 +27,4 @@ Content-Type: application/json
 
 
 ###
-DELETE http://arch.homework/user/2
+DELETE http://arch.homework/user/1
