@@ -8,6 +8,7 @@ import (
 	"github.com/bopoh24/ma_1/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"strconv"
 )
@@ -19,6 +20,7 @@ type UserService struct {
 
 // NewUserService returns a new UserService instance
 func NewUserService(cfg *config.Config, repo repository.Repository) *UserService {
+
 	return &UserService{
 		conf: cfg,
 		repo: repo,
@@ -27,16 +29,23 @@ func NewUserService(cfg *config.Config, repo repository.Repository) *UserService
 
 // Run runs the UserService
 func (s *UserService) Run() error {
+	mw := NewMetricsMiddleware(newMetrics())
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Post("/user", s.userCreate)
-	r.Get("/user/{id}", s.userByID)
-	r.Put("/user/{id}", s.userUpdate)
-	r.Delete("/user/{id}", s.userDelete)
+	r.Route("/user", func(r chi.Router) {
+		r.Use(mw.Middleware)
+		r.Post("/", s.userCreate)
+		r.Get("/{id}", s.userByID)
+		r.Put("/{id}", s.userUpdate)
+		r.Delete("/{id}", s.userDelete)
+	})
+
+	// metrics handler
+	r.Handle("/metrics", promhttp.Handler())
 
 	// Readiness and liveness probes
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {

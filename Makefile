@@ -24,25 +24,6 @@ helm_down: ### delete helm chart
 	@echo "Done!"
 
 
-up: ### create namespace "app" and run app
-	@echo "Creating namespace..."
-	kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
-	@echo "Installing postgresql..."
-	helm install postgresql bitnami/postgresql -n app --version 12.12.10 -f pg_values.yaml
-	@echo "Applying manifests..."
-	kubectl apply -f ./manifests
-	@echo "Done!"
-.PHONY:up
-
-down: ### stop app and delete namespace "app"
-	@echo "Deleting postgresql..."
-	helm delete postgresql -n app
-	@echo "Deleting k8s manifests..."
-	kubectl delete ns app
-	kubectl delete -n app pv postgres-pv
-	@echo "Done!"
-.PHONY:down
-
 build_images: build_image_app build_image_migrate ### build docker images
 .PHONY:build_images
 

@@ -1,5 +1,5 @@
-# Homework 3
-## Простой CRUD сервис с использованием PostgreSQL 
+# Homework 4
+## Простой CRUD сервис с использованием PostgreSQL и мониторингом
 
 ## Helm
 
@@ -14,29 +14,33 @@
     make helm_down
 
 
+### Конфигурация Grafana
 
-## Kubernetes манифесты
+`dashboard.json`  - дашборд для Grafana
 
-`./manifests` - все манифесты
+`alerts.json` - правила алертинга для Grafana
+
+### Скриншоты
+
+![Dashboard](./screenshots/dashboard.jpg?raw=true "Dashboard")
 
 
-Запуск приложения
 
-    make up
-
-Остановка приложения
+![Alerts](./screenshots/alerts.jpg?raw=true "Alerts")
     
-    make down
+
+
+### Установка ingress-nginx контроллера с метриками
+
+    kubectl create namespace m && \
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx/ && \
+    helm repo update && helm install nginx ingress-nginx/ingress-nginx --namespace m -f nginx-ingress.yaml
+
 
 
 ## Тестирование
 
 `./newman` - коллекция Postman и результаты тестирования
-
-
-#### Установка PostgreSQL (см. Makefile)
-
-    helm install postgresql bitnami/postgresql -n app --version 12.12.10 -f pg_values.yaml
 
 
 ## Остальные команды
@@ -47,3 +51,8 @@
 
     brew install helm
     helm repo add bitnami https://charts.bitnami.com/bitnami
+    
+### Prometheus и Grafana
+
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update

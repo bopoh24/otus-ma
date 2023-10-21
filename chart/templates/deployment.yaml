@@ -65,19 +65,19 @@ spec:
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: db
 
             - name: POSTRGES_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: dbUsername
 
             - name: POSTRGES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: dbPassword
 
 

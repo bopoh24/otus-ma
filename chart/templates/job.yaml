@@ -16,17 +16,17 @@ spec:
             - name: POSTGRES_DB
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: db
             - name: POSTRGES_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: dbUsername
             - name: POSTRGES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "app.fullname" . }}
+                  name: {{ .Values.postgresql.global.postgresql.auth.existingSecret }}
                   key: dbPassword
           command: ["migrate", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up"]
 

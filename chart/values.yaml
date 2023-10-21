@@ -39,6 +39,10 @@ pv:
   accessModes:
     - ReadWriteOnce
 
+metrics:
+  serviceMonitor:
+    enabled: true
+
 autoscaling: {}
 
 postgresql:
@@ -50,9 +54,27 @@ postgresql:
         username: postgres
         password: postgres
         database: postgres
+        existingSecret: postgresql-secret
+        secretKeys:
+          adminPasswordKey: dbPassword
+          userPasswordKey: dbPassword
+          replicationPasswordKey: dbPassword
   primary:
     persistence:
       existingClaim: postgres-pvc
+
   volumePermissions:
     enabled: true
 
+  metrics:
+    enabled: true
+    image:
+      tag: 0.14.0
+    serviceMonitor:
+      enabled: true
+
+
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false
