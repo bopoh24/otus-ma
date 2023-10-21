@@ -1,5 +1,5 @@
-# Homework 3
-## Простой CRUD сервис с использованием PostgreSQL 
+# Homework 4
+## Простой CRUD сервис с использованием PostgreSQL и мониторингом
 
 ## Helm
 
@@ -17,6 +17,7 @@
 ### Конфигурация Grafana
 
 `dashboard.json`  - дашборд для Grafana
+
 `alerts.json` - правила алертинга для Grafana
 
 ### Скриншоты
