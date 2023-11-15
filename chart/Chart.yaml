@@ -25,11 +25,10 @@ appVersion: "0.1.0"
 
 dependencies:
   - name: postgresql
-    version: "12.12.10"
+    version: "13.2.5"
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: kube-prometheus-stack
     version: "51.4.0"
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
-
