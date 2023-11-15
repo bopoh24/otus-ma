@@ -46,7 +46,40 @@ build_image_migrate: ### build migrations docker image
 	@echo "Image built successfully!"
 .PHONY:build_image_migrate
 
+build_image_api_gateway: ### build api gateway docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t bopoh24/api_gateway:latest -f api_gateway.dockerfile .
+	@echo "Image built successfully!"
+
 newman: ### run newman tests
 	@echo "Running newman tests..."
 	newman run newman/postman.json
 .PHONY:newman
+
+
+keycloak_up: ### start keycloak
+	@echo "Starting keycloak..."
+	@kubectl create namespace auth --dry-run=client -o yaml | kubectl apply -f -
+	# apply keycloak manifests
+	@kubectl apply -n auth -f keycloak/manifests
+	@helm install auth-server -n auth  oci://registry-1.docker.io/bitnamicharts/keycloak -f keycloak/values.yaml
+	@echo "Done!"
+
+keycloak_down: ### stop keycloak
+	@echo "Stopping keycloak..."
+	helm delete -n auth auth-server
+	@kubectl delete ns auth
+	@echo "Done!"
+
+
+krakend_up: ### start krakend
+	@echo "Starting krakend..."
+	@kubectl create namespace gateway --dry-run=client -o yaml | kubectl apply -f -
+	@helm install krakend -n gateway equinixmetal/krakend -f api-gateway/values.yaml
+	@echo "Done!"
+
+krakend_down: ### stop krakend
+	@echo "Stopping krakend..."
+	helm delete -n gateway krakend
+	@kubectl delete ns gateway
+	@echo "Done!"
