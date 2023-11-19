@@ -86,8 +86,11 @@ postgresql:
     database: bitnami_keycloak
     existingSecret: ""
   architecture: standalone
-  persistence:
-    size: 2Gi
+  #postgresqlDataDir: /data/pv0002
+  primary:
+    persistence:
+      enabled: true
+      size: 2Gi
 
 
 

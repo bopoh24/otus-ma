@@ -1,0 +1,7 @@
+ALTER TABLE users ADD COLUMN external_id VARCHAR(255) NOT NULL UNIQUE DEFAULT  '';
+ALTER TABLE users ADD COLUMN description TEXT NOT NULL DEFAULT '';
+ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
+ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
+
+
+

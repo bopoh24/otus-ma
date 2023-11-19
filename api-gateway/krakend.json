@@ -57,7 +57,6 @@
           "propagate_claims": [
             [ "sub", "x-user" ],
             [ "email", "x-email" ],
-            [ "name", "x-name" ],
             [ "given_name", "x-given-name" ],
             [ "family_name", "x-family-name" ],
             [ "preferred_username", "x-preferred-username" ]
@@ -67,7 +66,7 @@
     },
     {
       "endpoint": "/v1/users/me",
-      "method": "PATCH",
+      "method": "PUT",
       "output_encoding": "json",
       "input_headers": ["*"],
       "backend": [
@@ -75,10 +74,15 @@
           "url_pattern": "/user/me",
           "encoding": "json",
           "sd": "static",
-          "method": "PATCH",
+          "method": "PUT",
           "host": [
             "http://simple-server-app.app.svc.cluster.local"
           ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
           "disable_host_sanitize": false
         }
       ],
@@ -92,7 +96,6 @@
           "propagate_claims": [
             [ "sub", "x-user" ],
             [ "email", "x-email" ],
-            [ "name", "x-name" ],
             [ "given_name", "x-given-name" ],
             [ "family_name", "x-family-name" ],
             [ "preferred_username", "x-preferred-username" ]

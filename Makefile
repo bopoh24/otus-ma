@@ -8,7 +8,7 @@ help: ### this help information
 	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
-helm_up: ### install helm chart
+app_up: ### install app helm chart
 	@echo "Creating namespace..."
 	kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
 	@echo "Install helm chart..."
@@ -16,7 +16,7 @@ helm_up: ### install helm chart
 	@echo "Done!"
 .PHONY:helm_up
 
-helm_down: ### delete helm chart
+app_down: ### delete app helm chart
 	@echo "Uninstalling helm chart..."
 	helm delete -n app simple-server
 	@echo "Deleting namespace..."
@@ -46,10 +46,6 @@ build_image_migrate: ### build migrations docker image
 	@echo "Image built successfully!"
 .PHONY:build_image_migrate
 
-build_image_api_gateway: ### build api gateway docker image
-	@echo "Building image..."
-	docker build --platform linux/amd64 -t bopoh24/api_gateway:latest -f api_gateway.dockerfile .
-	@echo "Image built successfully!"
 
 newman: ### run newman tests
 	@echo "Running newman tests..."

@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -36,8 +37,16 @@ func (s *UserService) Run() error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	r.Get("/test", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"message": "ok"}`))
+	})
+
 	r.Route("/user", func(r chi.Router) {
 		r.Use(mw.Middleware)
+		r.Get("/me", s.userProfile)
+		r.Put("/me", s.updateUserProfile)
 		r.Post("/", s.userCreate)
 		r.Get("/{id}", s.userByID)
 		r.Put("/{id}", s.userUpdate)
@@ -161,6 +170,97 @@ func (s *UserService) userDelete(w http.ResponseWriter, r *http.Request) {
 		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		return
+	}
+}
+
+func (s *UserService) userProfile(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("X-User")
+	user, err := s.repo.UserByExternalID(userID)
+	if err != nil {
+		if !errors.Is(err, repository.ErrUserNotFound) {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			slog.Error("Error getting user by external id: ", err)
+			return
+		}
+		// create new user
+		user = model.User{
+			ExternalID: userID,
+			Email:      r.Header.Get("X-Email"),
+			Username:   r.Header.Get("X-Preferred-Username"),
+			FirstName:  r.Header.Get("X-Given-Name"),
+			LastName:   r.Header.Get("X-Family-Name"),
+		}
+		err = s.repo.UserCreate(&user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			slog.Error("Error creating user: ", err)
+			return
+		}
+	}
+	// write user to response body
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error encoding user: ", err)
+		return
+	}
+}
+
+func (s *UserService) updateUserProfile(w http.ResponseWriter, r *http.Request) {
+	payload := struct {
+		Username    string `json:"username"`
+		FirstName   string `json:"firstName"`
+		LastName    string `json:"LastName"`
+		Phone       string `json:"phone"`
+		Description string `json:"description"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(NewError(http.StatusBadRequest, err.Error()).JSON())
+		return
+	}
+	user := model.User{
+		ExternalID:  r.Header.Get("X-User"),
+		Username:    payload.Username,
+		FirstName:   payload.FirstName,
+		LastName:    payload.LastName,
+		Phone:       payload.Phone,
+		Description: payload.Description,
+	}
+	// update user
+	err = s.repo.UserUpdateByExternalID(&user)
+	if err != nil {
+		if !errors.Is(err, repository.ErrUserNotFound) {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			return
+		}
+		// create new user
+		err = s.repo.UserCreate(&user)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			return
+		}
+	}
+	user, err = s.repo.UserByExternalID(user.ExternalID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error getting user by external id: ", err)
+		return
+	}
+	// write user to response body
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error encoding user: ", err)
 		return
 	}
 }

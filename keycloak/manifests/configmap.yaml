@@ -7,6 +7,8 @@ data:
     {
       "id": "8764cd6d-c75f-4737-bc96-8bc1b9a5167c",
       "realm": "app",
+      "displayName": "",
+      "displayNameHtml": "",
       "notBefore": 0,
       "defaultSignatureAlgorithm": "RS256",
       "revokeRefreshToken": false,
@@ -33,13 +35,13 @@ data:
       "oauth2DevicePollingInterval": 5,
       "enabled": true,
       "sslRequired": "external",
-      "registrationAllowed": false,
-      "registrationEmailAsUsername": false,
+      "registrationAllowed": true,
+      "registrationEmailAsUsername": true,
       "rememberMe": false,
       "verifyEmail": false,
       "loginWithEmailAllowed": true,
       "duplicateEmailsAllowed": false,
-      "resetPasswordAllowed": false,
+      "resetPasswordAllowed": true,
       "editUsernameAllowed": false,
       "bruteForceProtected": false,
       "permanentLockout": false,
@@ -69,8 +71,8 @@ data:
       "otpPolicyCodeReusable": false,
       "otpSupportedApplications": [
         "totpAppFreeOTPName",
-        "totpAppGoogleName",
-        "totpAppMicrosoftAuthenticatorName"
+        "totpAppMicrosoftAuthenticatorName",
+        "totpAppGoogleName"
       ],
       "webAuthnPolicyRpEntityName": "keycloak",
       "webAuthnPolicySignatureAlgorithms": [
@@ -213,7 +215,9 @@ data:
           "publicClient": true,
           "frontchannelLogout": false,
           "protocol": "openid-connect",
-          "attributes": {},
+          "attributes": {
+            "post.logout.redirect.uris": "+"
+          },
           "authenticationFlowBindingOverrides": {},
           "fullScopeAllowed": false,
           "nodeReRegistrationTimeout": 0,
@@ -240,7 +244,9 @@ data:
           "publicClient": false,
           "frontchannelLogout": false,
           "protocol": "openid-connect",
-          "attributes": {},
+          "attributes": {
+            "post.logout.redirect.uris": "+"
+          },
           "authenticationFlowBindingOverrides": {},
           "fullScopeAllowed": false,
           "nodeReRegistrationTimeout": 0,
@@ -267,7 +273,9 @@ data:
           "publicClient": false,
           "frontchannelLogout": false,
           "protocol": "openid-connect",
-          "attributes": {},
+          "attributes": {
+            "post.logout.redirect.uris": "+"
+          },
           "authenticationFlowBindingOverrides": {},
           "fullScopeAllowed": false,
           "nodeReRegistrationTimeout": 0,
@@ -356,9 +364,10 @@ data:
           "protocol": "openid-connect",
           "attributes": {
             "oidc.ciba.grant.enabled": "false",
+            "backchannel.logout.session.required": "true",
+            "post.logout.redirect.uris": "+",
             "display.on.consent.screen": "false",
             "oauth2.device.authorization.grant.enabled": "false",
-            "backchannel.logout.session.required": "true",
             "backchannel.logout.revoke.offline.tokens": "false"
           },
           "authenticationFlowBindingOverrides": {},
@@ -960,13 +969,13 @@ data:
             "subComponents": {},
             "config": {
               "allowed-protocol-mapper-types": [
-                "saml-user-property-mapper",
-                "oidc-usermodel-property-mapper",
-                "oidc-usermodel-attribute-mapper",
-                "saml-role-list-mapper",
                 "oidc-sha256-pairwise-sub-mapper",
-                "oidc-address-mapper",
+                "oidc-usermodel-attribute-mapper",
                 "oidc-full-name-mapper",
+                "saml-user-property-mapper",
+                "saml-role-list-mapper",
+                "oidc-usermodel-property-mapper",
+                "oidc-address-mapper",
                 "saml-user-attribute-mapper"
               ]
             }
@@ -979,13 +988,13 @@ data:
             "subComponents": {},
             "config": {
               "allowed-protocol-mapper-types": [
-                "oidc-sha256-pairwise-sub-mapper",
-                "saml-role-list-mapper",
-                "oidc-address-mapper",
                 "saml-user-attribute-mapper",
+                "oidc-address-mapper",
                 "saml-user-property-mapper",
-                "oidc-usermodel-property-mapper",
                 "oidc-full-name-mapper",
+                "saml-role-list-mapper",
+                "oidc-sha256-pairwise-sub-mapper",
+                "oidc-usermodel-property-mapper",
                 "oidc-usermodel-attribute-mapper"
               ]
             }
@@ -1714,17 +1723,19 @@ data:
       "dockerAuthenticationFlow": "docker auth",
       "attributes": {
         "cibaBackchannelTokenDeliveryMode": "poll",
-        "cibaExpiresIn": "120",
         "cibaAuthRequestedUserHint": "login_hint",
-        "oauth2DeviceCodeLifespan": "600",
         "clientOfflineSessionMaxLifespan": "0",
         "oauth2DevicePollingInterval": "5",
         "clientSessionIdleTimeout": "0",
-        "parRequestUriLifespan": "60",
-        "clientSessionMaxLifespan": "0",
         "clientOfflineSessionIdleTimeout": "0",
         "cibaInterval": "5",
-        "realmReusableOtpCode": "false"
+        "realmReusableOtpCode": "false",
+        "cibaExpiresIn": "120",
+        "oauth2DeviceCodeLifespan": "600",
+        "parRequestUriLifespan": "60",
+        "clientSessionMaxLifespan": "0",
+        "frontendUrl": "",
+        "acr.loa.map": "{}"
       },
       "keycloakVersion": "22.0.5",
       "userManagedAccessAllowed": false,

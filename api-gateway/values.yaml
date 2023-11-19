@@ -68,7 +68,6 @@ krakend:
               "propagate_claims": [
                 [ "sub", "x-user" ],
                 [ "email", "x-email" ],
-                [ "name", "x-name" ],
                 [ "given_name", "x-given-name" ],
                 [ "family_name", "x-family-name" ],
                 [ "preferred_username", "x-preferred-username" ]
@@ -78,15 +77,20 @@ krakend:
         },
         {
           "endpoint": "/v1/users/me",
-          "method": "PATCH",
+          "method": "PUT",
           "output_encoding": "json",
           "input_headers": ["*"],
           "backend": [
             {
               "url_pattern": "/user/me",
               "encoding": "json",
+              "extra_config": {
+                "backend/http": {
+                  "return_error_code": true
+                }
+              },
               "sd": "static",
-              "method": "PATCH",
+              "method": "PUT",
               "host": [
                 "http://simple-server-app.app.svc.cluster.local"
               ],
@@ -103,7 +107,6 @@ krakend:
               "propagate_claims": [
                 [ "sub", "x-user" ],
                 [ "email", "x-email" ],
-                [ "name", "x-name" ],
                 [ "given_name", "x-given-name" ],
                 [ "family_name", "x-family-name" ],
                 [ "preferred_username", "x-preferred-username" ]

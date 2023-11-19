@@ -34,7 +34,7 @@ func main() {
 		Level: initLogLevel(cfg.App.LogLevel),
 	}))
 
-	logger.Info("App started", slog.With("name", cfg.App.Name))
+	logger.Info("App started", cfg.App.Name)
 	// init repository
 	repo, err := pg.New(cfg.Postgres)
 	if err != nil {
