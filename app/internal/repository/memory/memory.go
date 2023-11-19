@@ -1,8 +1,8 @@
 package memory
 
 import (
-	"github.com/bopoh24/ma_1/internal/model"
-	"github.com/bopoh24/ma_1/internal/repository"
+	"github.com/bopoh24/ma_1/app/internal/model"
+	"github.com/bopoh24/ma_1/app/internal/repository"
 )
 
 type Memory struct {

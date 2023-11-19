@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/bopoh24/ma_1/internal/config"
-	"github.com/bopoh24/ma_1/internal/repository/pg"
-	"github.com/bopoh24/ma_1/internal/service"
+	"github.com/bopoh24/ma_1/app/internal/config"
+	"github.com/bopoh24/ma_1/app/internal/repository/pg"
+	"github.com/bopoh24/ma_1/app/internal/service"
 	"log/slog"
 	"os"
 )

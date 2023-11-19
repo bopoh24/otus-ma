@@ -3,9 +3,9 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"github.com/bopoh24/ma_1/internal/config"
-	"github.com/bopoh24/ma_1/internal/model"
-	"github.com/bopoh24/ma_1/internal/repository"
+	"github.com/bopoh24/ma_1/app/internal/config"
+	"github.com/bopoh24/ma_1/app/internal/model"
+	"github.com/bopoh24/ma_1/app/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/bopoh24/ma_1/internal/model"
+import (
+	"github.com/bopoh24/ma_1/app/internal/model"
+)
 
 type Repository interface {
 	UserCreate(user *model.User) error

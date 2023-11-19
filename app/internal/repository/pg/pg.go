@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/bopoh24/ma_1/internal/config"
-	"github.com/bopoh24/ma_1/internal/model"
-	"github.com/bopoh24/ma_1/internal/repository"
+	"github.com/bopoh24/ma_1/app/internal/config"
+	"github.com/bopoh24/ma_1/app/internal/model"
+	"github.com/bopoh24/ma_1/app/internal/repository"
 	_ "github.com/lib/pq"
 )
 
