@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/bopoh24/ma_1/app/internal/config"
 	"github.com/bopoh24/ma_1/app/internal/model"
 	"github.com/bopoh24/ma_1/app/internal/repository"
@@ -41,6 +43,14 @@ func (s *UserService) Run() error {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(`{"message": "ok"}`))
+	})
+
+	r.Route("/auth", func(r chi.Router) {
+		r.Use(mw.Middleware)
+		r.Post("/login", s.login)
+		r.Post("/logout", s.logout)
+		r.Post("/register", s.register)
+		r.Post("/refresh", s.refresh)
 	})
 
 	r.Route("/user", func(r chi.Router) {
@@ -214,7 +224,7 @@ func (s *UserService) updateUserProfile(w http.ResponseWriter, r *http.Request) 
 	payload := struct {
 		Username    string `json:"username"`
 		FirstName   string `json:"firstName"`
-		LastName    string `json:"LastName"`
+		LastName    string `json:"lastName"`
 		Phone       string `json:"phone"`
 		Description string `json:"description"`
 	}{}
@@ -238,13 +248,16 @@ func (s *UserService) updateUserProfile(w http.ResponseWriter, r *http.Request) 
 		if !errors.Is(err, repository.ErrUserNotFound) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			slog.Error("Error updating user: ", err)
 			return
 		}
 		// create new user
+		user.Email = r.Header.Get("X-Email")
 		err = s.repo.UserCreate(&user)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+			slog.Error("Error creating user: ", err)
 			return
 		}
 	}
@@ -261,6 +274,155 @@ func (s *UserService) updateUserProfile(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
 		slog.Error("Error encoding user: ", err)
+		return
+	}
+}
+
+func (s *UserService) login(w http.ResponseWriter, r *http.Request) {
+	payload := struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(NewError(http.StatusBadRequest, err.Error()).JSON())
+		return
+	}
+
+	client := gocloak.NewClient(s.conf.Keycloak.URL)
+	token, err := client.Login(context.Background(), s.conf.Keycloak.ClientID, s.conf.Keycloak.ClientSecret,
+		s.conf.Keycloak.Realm, payload.Username, payload.Password)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		return
+	}
+	// write token to response body
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		return
+	}
+}
+
+func (s *UserService) logout(w http.ResponseWriter, r *http.Request) {
+	payload := struct {
+		RefreshToken string `json:"refreshToken"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(NewError(http.StatusBadRequest, err.Error()).JSON())
+		slog.Error("Error decoding payload: ", err)
+		return
+	}
+
+	client := gocloak.NewClient(s.conf.Keycloak.URL)
+	err = client.Logout(context.Background(), s.conf.Keycloak.ClientID, s.conf.Keycloak.ClientSecret,
+		s.conf.Keycloak.Realm, payload.RefreshToken)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error logging out: ", err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+	w.Write([]byte{})
+}
+
+func (s *UserService) refresh(w http.ResponseWriter, r *http.Request) {
+	payload := struct {
+		RefreshToken string `json:"refreshToken"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(NewError(http.StatusBadRequest, err.Error()).JSON())
+		slog.Error("Error decoding payload: ", err)
+		return
+	}
+
+	client := gocloak.NewClient(s.conf.Keycloak.URL)
+	token, err := client.RefreshToken(context.Background(), payload.RefreshToken, s.conf.Keycloak.ClientID,
+		s.conf.Keycloak.ClientSecret, s.conf.Keycloak.Realm)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error refreshing token: ", err)
+		return
+	}
+	// write token to response body
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error encoding token: ", err)
+		return
+	}
+}
+
+func (s *UserService) register(w http.ResponseWriter, r *http.Request) {
+	payload := struct {
+		Email     string `json:"email"`
+		Password  string `json:"password"`
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
+	}{}
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(NewError(http.StatusBadRequest, err.Error()).JSON())
+		slog.Error("Error decoding payload: ", err)
+		return
+	}
+	client := gocloak.NewClient(s.conf.Keycloak.URL)
+	token, err := client.LoginAdmin(context.Background(),
+		s.conf.Keycloak.Admin, s.conf.Keycloak.Password, "master")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error logging in admin: ", err)
+		return
+	}
+	_, err = client.CreateUser(context.Background(), token.AccessToken, s.conf.Keycloak.Realm, gocloak.User{
+		Email:     gocloak.StringP(payload.Email),
+		FirstName: gocloak.StringP(payload.FirstName),
+		LastName:  gocloak.StringP(payload.LastName),
+		Enabled:   gocloak.BoolP(true),
+		Username:  gocloak.StringP(payload.Email),
+		Credentials: &[]gocloak.CredentialRepresentation{
+			{
+				Temporary: gocloak.BoolP(false),
+				Type:      gocloak.StringP("password"),
+				Value:     gocloak.StringP(payload.Password),
+			},
+		},
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error creating user: ", err)
+		return
+	}
+	token, err = client.Login(context.Background(), s.conf.Keycloak.ClientID, s.conf.Keycloak.ClientSecret, s.conf.Keycloak.Realm,
+		payload.Email, payload.Password)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error logging in as new user: ", err)
+		return
+	}
+	// return token
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(NewError(http.StatusInternalServerError, err.Error()).JSON())
+		slog.Error("Error encoding token: ", err)
 		return
 	}
 }

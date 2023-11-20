@@ -15,9 +15,19 @@ type App struct {
 	LogLevel string `env:"APP_LOG_LEVEL" env-default:"debug"`
 }
 
+type Keycloak struct {
+	Realm        string `env:"KEYCLOAK_REALM" env-default:"app"`
+	URL          string `env:"KEYCLOAK_URL" env-default:"http://auth-server-keycloak.auth.svc.cluster.local"`
+	ClientID     string `env:"KEYCLOAK_CLIENT_ID" env-default:"simple-server"`
+	ClientSecret string `env:"KEYCLOAK_CLIENT_SECRET" env-default:"e2e3f4d5-6c7b-8a9b-0c1d-2e3f4d5e6f7a"`
+	Admin        string `env:"KEYCLOAK_ADMIN" env-default:"admin"`
+	Password     string `env:"KEYCLOAK_PASSWORD" env-default:"admin"`
+}
+
 type Config struct {
 	App      App
 	Postgres Postgres
+	Keycloak Keycloak
 }
 
 // New returns a new Config struct

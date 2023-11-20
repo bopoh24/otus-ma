@@ -5,7 +5,7 @@ type User struct {
 	ExternalID  string `json:"externalId"`
 	Username    string `json:"username"`
 	FirstName   string `json:"firstName"`
-	LastName    string `json:"LastName"`
+	LastName    string `json:"lastName"`
 	Email       string `json:"email"`
 	Phone       string `json:"phone"`
 	Description string `json:"description,omitempty"`
