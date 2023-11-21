@@ -16,13 +16,13 @@ down: app_down keycloak_down krakend_down ### stop all services
 app_up: ### install app helm chart
 	@echo "Creating namespace..."
 	kubectl create namespace app --dry-run=client -o yaml | kubectl apply -f -
-	@echo "Install helm chart..."
+	@echo "Install helm chart for simple-server..."
 	helm install -n app simple-server ./app/chart
 	@echo "Done!"
 .PHONY:helm_up
 
 app_down: ### delete app helm chart
-	@echo "Uninstalling helm chart..."
+	@echo "Stopping simple-server..."
 	helm delete -n app simple-server
 	@echo "Deleting namespace..."
 	kubectl delete ns app

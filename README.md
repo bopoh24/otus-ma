@@ -1,33 +1,35 @@
-# Homework 4
-## Простой CRUD сервис с использованием PostgreSQL и мониторингом
+# Homework 5
+## Простой сервис с auth proxy и api-gateway
 
-## Helm
-
-`./chart` - шаблонизация приложения в helm чартах
 
 Запуск приложения
 
-    make helm_up
+    make up
 
 Остановка приложения
     
-    make helm_down
+    make down
 
 
-### Конфигурация Grafana
+### Схема приложения
 
-`dashboard.json`  - дашборд для Grafana
-
-`alerts.json` - правила алертинга для Grafana
-
-### Скриншоты
-
-![Dashboard](./screenshots/dashboard.jpg?raw=true "Dashboard")
+![Schema](./screenshots/app_scheme.jpg?raw=true "App Scheme")
 
 
+## Тестирование
 
-![Alerts](./screenshots/alerts.jpg?raw=true "Alerts")
-    
+### Запуск тестов
+
+    make newman
+
+### Результаты тестов
+
+
+![Tests](./newman/newman_1.jpg?raw=true "Tests")
+![Tests](./newman/newman_2.jpg?raw=true "Tests")
+
+
+
 
 
 ### Установка ingress-nginx контроллера с метриками
@@ -38,11 +40,6 @@
 
 
 
-## Тестирование
-
-`./newman` - коллекция Postman и результаты тестирования
-
-
 ## Остальные команды
 
     make help
@@ -51,13 +48,13 @@
 
     brew install helm
     helm repo add bitnami https://charts.bitnami.com/bitnami
-    
-### Prometheus и Grafana
-
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
 
 ### KrakenD
 
     helm repo add equinixmetal https://helm.equinixmetal.com
+    helm repo update
+
+### Prometheus и Grafana
+
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo update
