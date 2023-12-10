@@ -1,9 +1,8 @@
 package main
 
 import (
+	"github.com/bopoh24/ma_1/app/internal/app"
 	"github.com/bopoh24/ma_1/app/internal/config"
-	"github.com/bopoh24/ma_1/app/internal/repository/pg"
-	"github.com/bopoh24/ma_1/app/internal/service"
 	"log/slog"
 	"os"
 )
@@ -34,15 +33,7 @@ func main() {
 		Level: initLogLevel(cfg.App.LogLevel),
 	}))
 
-	logger.Info("App started", cfg.App.Name)
-	// init repository
-	repo, err := pg.New(cfg.Postgres)
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	}
-	srv := service.NewUserService(cfg, repo)
-	if err := srv.Run(); err != nil {
+	if err := app.New(cfg, logger).Run(); err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}

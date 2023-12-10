@@ -57,7 +57,7 @@ krakend_down: ### stop krakend
 
 newman: ### run newman tests
 	@echo "Running newman tests..."
-	newman run newman/postman.json
+	newman run newman/postman_6.json
 .PHONY:newman
 
 push_images: ### push docker images to docker hub
