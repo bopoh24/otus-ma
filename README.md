@@ -1,5 +1,16 @@
-# Homework 5
-## Простой сервис с auth proxy и api-gateway
+# Homework 6
+## Идемпотетный метод создания заказа
+
+### Описание
+
+В данном примере при создании заказа `POST http://arch.homework/v1/order` 
+используется заголовок `X-Idempotency-Key`.
+
+Если заказ уже был создан с таким ключом, то возвращается код `200` и его id.
+Если нет, то создается новый заказ и возвращается его id.
+
+    { "order_id": 1123 }
+
 
 
 Запуск приложения
@@ -11,11 +22,6 @@
     make down
 
 
-### Схема приложения
-
-![Schema](./screenshots/app_scheme.jpg?raw=true "App Scheme")
-
-
 ## Тестирование
 
 ### Запуск тестов
@@ -25,8 +31,7 @@
 ### Результаты тестов
 
 
-![Tests](./newman/newman_1.jpg?raw=true "Tests")
-![Tests](./newman/newman_2.jpg?raw=true "Tests")
+![Tests](./newman/newman_3.jpg?raw=true "Tests")
 
 
 

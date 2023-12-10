@@ -84,16 +84,16 @@ krakend:
             {
               "url_pattern": "/user/me",
               "encoding": "json",
-              "extra_config": {
-                "backend/http": {
-                  "return_error_code": true
-                }
-              },
               "sd": "static",
               "method": "PUT",
               "host": [
                 "http://simple-server-app.app.svc.cluster.local"
               ],
+              "extra_config": {
+                "backend/http": {
+                  "return_error_code": true
+                }
+              },
               "disable_host_sanitize": false
             }
           ],
@@ -113,23 +113,6 @@ krakend:
               ]
             }
           }
-        },
-        {
-          "endpoint": "/v1/app",
-          "method": "GET",
-          "output_encoding": "json",
-          "backend": [
-            {
-              "url_pattern": "/test",
-              "encoding": "json",
-              "sd": "static",
-              "method": "GET",
-              "host": [
-                "http://simple-server-app.app.svc.cluster.local"
-              ],
-              "disable_host_sanitize": false
-            }
-          ]
         },
         {
           "endpoint": "/v1/login",
@@ -218,6 +201,76 @@ krakend:
               "disable_host_sanitize": false
             }
           ]
+        },
+        {
+          "endpoint": "/v1/order",
+          "method": "POST",
+          "output_encoding": "json",
+          "input_headers": ["*"],
+          "backend": [
+            {
+              "url_pattern": "/order",
+              "encoding": "json",
+              "sd": "static",
+              "method": "POST",
+              "host": [
+                "http://simple-server-app.app.svc.cluster.local"
+              ],
+              "extra_config": {
+                "backend/http": {
+                  "return_error_code": true
+                }
+              },
+              "disable_host_sanitize": false
+            }
+          ]
+        },
+        {
+          "endpoint": "/v1/order/{id}",
+          "method": "GET",
+          "output_encoding": "json",
+          "input_headers": ["*"],
+          "backend": [
+            {
+              "url_pattern": "/order/{id}",
+              "encoding": "json",
+              "sd": "static",
+              "method": "GET",
+              "host": [
+                "http://simple-server-app.app.svc.cluster.local"
+              ],
+              "extra_config": {
+                "backend/http": {
+                  "return_error_code": true
+                }
+              },
+              "disable_host_sanitize": false
+            }
+          ]
+        },
+        {
+          "endpoint": "/v1/order/{id}",
+          "method": "DELETE",
+          "output_encoding": "json",
+          "input_headers": ["*"],
+          "backend": [
+            {
+              "url_pattern": "/order/{id}",
+              "encoding": "json",
+              "sd": "static",
+              "method": "DELETE",
+              "host": [
+                "http://simple-server-app.app.svc.cluster.local"
+              ],
+              "extra_config": {
+                "backend/http": {
+                  "return_error_code": true
+                }
+              },
+              "disable_host_sanitize": false
+            }
+          ]
         }
       ]
     }
+
