@@ -1,0 +1,132 @@
+# Default values for app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appConfig:
+  name: Service booking Server
+  logLevel: debug
+
+ingress:
+  enabled: false
+
+replicaCount: 1
+
+image:
+  repository: bopoh24/simple_server
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 80
+
+pv:
+  enabled: true
+  name: postgres-pv
+  size: 2Gi
+  storageClass: standard
+  path: /data/pv0001
+  accessModes:
+    - ReadWriteOnce
+
+metrics:
+  serviceMonitor:
+    enabled: true
+
+autoscaling: {}
+
+
+postgresql:
+  enabled: true
+  global:
+    postgresql:
+      auth:
+        postgresPassword: postgres
+        username: postgres
+        password: postgres
+        database: postgres
+        existingSecret: postgresql-secret
+        secretKeys:
+          adminPasswordKey: dbPassword
+          userPasswordKey: dbPassword
+          replicationPasswordKey: dbPassword
+
+  primary:
+    initdb:
+      scripts:
+        01-init.sql: |
+          CREATE DATABASE "keycloak" WITH OWNER postgres;
+          CREATE DATABASE "customer" WITH OWNER postgres;
+          CREATE DATABASE "company" WITH OWNER postgres;
+          CREATE DATABASE "booking" WITH OWNER postgres;
+          CREATE DATABASE "payment" WITH OWNER postgres;
+    persistence:
+      existingClaim: postgres-pvc
+
+  volumePermissions:
+    enabled: true
+
+  metrics:
+    enabled: true
+    image:
+      tag: 0.14.0
+    serviceMonitor:
+      enabled: true
+
+
+keycloak:
+  auth:
+    adminUser: admin
+    adminPassword: admin
+
+  extraEnvVars:
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: "--import-realm"
+
+  extraVolumeMounts:
+    - name: config
+      mountPath: /opt/bitnami/keycloak/data/import
+      readOnly: true
+
+  extraVolumes:
+    - name: config
+      configMap:
+        name: keycloak-configmap
+        items:
+          - key: "realm.json"
+            path: "realm.json"
+  postgresql:
+    enabled: false
+
+  externalDatabase:
+    port: 5432
+    database: keycloak
+    existingSecret: postgresql-secret
+    existingSecretHostKey: dbHost
+    existingSecretUserKey: dbUsername
+    existingSecretPasswordKey: dbPassword
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: keycloak.local
+
+
+
+krakend:
+  enabled: true
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: arch.homework
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+
+kube-prometheus-stack:
+  enabled: true
+  prometheus:
+    prometheusSpec:
+      serviceMonitorSelectorNilUsesHelmValues: false

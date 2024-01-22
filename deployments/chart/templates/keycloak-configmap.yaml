@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-configmap
+data:
+  realm.json: |-
+    {{ .Values.keycloak.config | toJson | nindent 4 }}

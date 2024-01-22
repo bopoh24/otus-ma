@@ -1,14 +1,14 @@
 # build stage ==================================================================
-FROM golang:1.21.3 as builder
+FROM golang:latest as builder
 WORKDIR /src
-COPY .. .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./app ./cmd/app
+COPY . .
+RUN GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o ./customer ./customer/cmd
 
 # final stage ==================================================================
 FROM istio/distroless
-COPY --from=builder /src/app /app
-EXPOSE 8000
-ENTRYPOINT ["/app"]
+COPY --from=builder /src/customer /customer
+EXPOSE 80
+ENTRYPOINT ["/customer"]
 
 
 

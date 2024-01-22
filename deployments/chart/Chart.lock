@@ -1,0 +1,15 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.2.5
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.2.1
+- name: krakend
+  repository: https://helm.equinixmetal.com
+  version: v0.1.26
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 51.4.0
+digest: sha256:a6510a381ba8b961edd370d579358694f4daee23349e87722550209e20de4898
+generated: "2024-01-22T00:47:31.167655+02:00"
