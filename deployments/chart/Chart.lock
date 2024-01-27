@@ -7,9 +7,9 @@ dependencies:
   version: 18.2.1
 - name: krakend
   repository: https://helm.equinixmetal.com
-  version: v0.1.26
+  version: v0.1.27
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 51.4.0
-digest: sha256:a6510a381ba8b961edd370d579358694f4daee23349e87722550209e20de4898
-generated: "2024-01-22T00:47:31.167655+02:00"
+digest: sha256:8e8d094639231dd3cd956943b47e1cf21f146e48bd3c10a73c09d17d86e1c07d
+generated: "2024-01-25T23:33:28.962422+02:00"

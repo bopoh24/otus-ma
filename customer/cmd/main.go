@@ -1,49 +1,34 @@
 package main
 
 import (
-	"github.com/bopoh24/ma_1/app/internal/config"
-	"github.com/bopoh24/ma_1/app/internal/repository/pg"
-	"github.com/bopoh24/ma_1/app/internal/service"
+	"github.com/bopoh24/ma_1/customer/internal/config"
+	"github.com/bopoh24/ma_1/customer/internal/repository/pg"
+	"github.com/bopoh24/ma_1/customer/internal/service"
+	"github.com/bopoh24/ma_1/pkg/logger"
 	"log/slog"
 	"os"
 )
-
-func initLogLevel(level string) slog.Level {
-	var logLevel slog.Level
-	switch level {
-	case "debug":
-		logLevel = slog.LevelDebug
-	case "info":
-		logLevel = slog.LevelInfo
-	case "warn":
-		logLevel = slog.LevelWarn
-	default:
-		logLevel = slog.LevelError
-	}
-	return logLevel
-}
 
 func main() {
 	// init config
 	cfg, err := config.New()
 	if err != nil {
-		panic(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 	// init logger
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: initLogLevel(cfg.App.LogLevel),
-	}))
+	log := logger.New(cfg.App.LogLevel)
 
-	logger.Info("App started", cfg.App.Name)
+	log.Info("App started", cfg.App.Name)
 	// init repository
 	repo, err := pg.New(cfg.Postgres)
 	if err != nil {
-		logger.Error(err.Error())
+		log.Error(err.Error())
 		os.Exit(1)
 	}
 	srv := service.NewUserService(cfg, repo)
 	if err := srv.Run(); err != nil {
-		logger.Error(err.Error())
+		log.Error(err.Error())
 		os.Exit(1)
 	}
 }

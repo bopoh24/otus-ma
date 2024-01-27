@@ -4,4 +4,5 @@ metadata:
   name: keycloak-configmap
 data:
   realm.json: |-
-    {{ .Values.keycloak.config | toJson | nindent 4 }}
+    {{- $.Files.Get "config/keycloak/realm-export.json"  | nindent 6 -}}
+

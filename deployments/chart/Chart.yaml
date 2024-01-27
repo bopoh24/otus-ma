@@ -35,7 +35,7 @@ dependencies:
 
   - name: krakend
     repository: https://helm.equinixmetal.com
-    version: 0.1.26
+    version: 0.1.27
     condition: krakend.enabled
 
   - name: kube-prometheus-stack

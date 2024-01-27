@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/bopoh24/ma_1/app/internal/model"
+	"github.com/bopoh24/ma_1/customer/internal/model"
 )
 
 type Repository interface {
