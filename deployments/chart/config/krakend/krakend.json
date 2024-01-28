@@ -50,7 +50,7 @@
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
-          "jwk_url": "http://auth-server-keycloak.auth.svc.cluster.local/realms/app/protocol/openid-connect/certs",
+          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/app/protocol/openid-connect/certs",
           "cache": true,
           "disable_jwk_security": true,
           "operation_debug": true,
@@ -76,7 +76,7 @@
           "sd": "static",
           "method": "PUT",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {
@@ -89,7 +89,7 @@
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
-          "jwk_url": "http://auth-server-keycloak.auth.svc.cluster.local/realms/app/protocol/openid-connect/certs",
+          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/app/protocol/openid-connect/certs",
           "cache": true,
           "disable_jwk_security": true,
           "operation_debug": true,
@@ -114,7 +114,7 @@
           "sd": "static",
           "method": "POST",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {
@@ -136,7 +136,7 @@
           "sd": "static",
           "method": "POST",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {
@@ -158,7 +158,7 @@
           "sd": "static",
           "method": "POST",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {
@@ -180,7 +180,7 @@
           "sd": "static",
           "method": "POST",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {

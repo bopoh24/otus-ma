@@ -3,24 +3,72 @@
 # Declare variables to be passed into your templates.
 
 appConfig:
-  name: Service booking Server
+  name: Service booking
   logLevel: debug
 
-ingress:
+# Microservices configuration block (enabled by default)
+customerService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: bopoh24/b-srv-customer
+    pullPolicy: Always
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+  autoscaling: {}
+
+companyService:
   enabled: false
+  replicaCount: 1
+  image:
+    repository: bopoh24/b-srv-company
+    pullPolicy: Always
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+  autoscaling: {}
 
-replicaCount: 1
+bookingService:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: bopoh24/b-srv-booking
+    pullPolicy: Always
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+  autoscaling: {}
 
-image:
-  repository: bopoh24/simple_server
-  pullPolicy: Always
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+paymentService:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: bopoh24/b-srv-payment
+    pullPolicy: Always
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+  autoscaling: {}
 
-service:
-  type: NodePort
-  port: 80
+notificationService:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: bopoh24/b-srv-notification
+    pullPolicy: Always
+    tag: latest
+  service:
+    type: NodePort
+    port: 80
+  autoscaling: {}
 
+
+# Persistent volume configuration block (enabled by default)
 pv:
   enabled: true
   name: postgres-pv
@@ -30,11 +78,10 @@ pv:
   accessModes:
     - ReadWriteOnce
 
+# Metrics configuration block (enabled by default)
 metrics:
   serviceMonitor:
     enabled: true
-
-autoscaling: {}
 
 
 postgresql:
@@ -42,11 +89,8 @@ postgresql:
   global:
     postgresql:
       auth:
-        postgresPassword: postgres
-        username: postgres
-        password: postgres
         database: postgres
-        existingSecret: postgresql-secret
+        existingSecret: secret
         secretKeys:
           adminPasswordKey: dbPassword
           userPasswordKey: dbPassword
@@ -102,7 +146,7 @@ keycloak:
   externalDatabase:
     port: 5432
     database: keycloak
-    existingSecret: postgresql-secret
+    existingSecret: secret
     existingSecretHostKey: dbHost
     existingSecretUserKey: dbUsername
     existingSecretPasswordKey: dbPassword
@@ -116,7 +160,7 @@ keycloak:
 
 krakend:
   enabled: true
-  #krakend: # TODO: add krakend config AND check realm creation!!!
+  #krakend: # TODO: add krakend config now it passed in helm command
   #  configFileSource: ../config/krakend/krakend.json
   ingress:
     enabled: true
@@ -128,7 +172,7 @@ krakend:
             pathType: ImplementationSpecific
 
 kube-prometheus-stack:
-  enabled: true
+  enabled: false
   prometheus:
     prometheusSpec:
       serviceMonitorSelectorNilUsesHelmValues: false

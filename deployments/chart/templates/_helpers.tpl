@@ -62,5 +62,5 @@ Create the name of the service account to use
 {{- end }}
 
 {{- define "app.postgresHostName" -}}
-{{- printf "%s-postgresql.%s.svc.cluster.local" .Release.Name .Release.Namespace }}
+{{- printf "%s-postgresql.%s.svc" .Release.Name .Release.Namespace }}
 {{- end}}

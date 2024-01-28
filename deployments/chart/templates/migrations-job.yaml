@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{.Release.Name}}-migrate
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: customer-migrate-container
+          image: bopoh24/b-srv-customer-migrate:latest
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+            - name: POSTGRES_DB
+              value: customer
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+          command: ["migrate", "-verbose", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up"]
+

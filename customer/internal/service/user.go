@@ -74,7 +74,7 @@ func (s *UserService) Run() error {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	return http.ListenAndServe(":8000", r)
+	return http.ListenAndServe(":80", r)
 }
 
 // UserCreate creates a new user

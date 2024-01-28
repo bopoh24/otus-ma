@@ -1,45 +1,35 @@
-APP_IMAGE_NAME=bopoh24/simple_server:latest
-MIGRATE_IMAGE_NAME=bopoh24/simple_server_migrate:latest
-
 NAMESPACE=app
 RELEASE_NAME=booking-srv
+
+CUSTOMER_IMAGE_NAME=bopoh24/b-srv-customer:latest
+CUSTOMER_MIGRATE_IMAGE_NAME=bopoh24/b-srv-customer-migrate:latest
+
 
 # HELP =================================================================================================================
 # This will output the help for each task
 # thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help: ### this help information
-	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nMakefile help:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-30s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 .PHONY: help
 
-
-
-newman: ### run newman tests
-	@echo "Running newman tests..."
-	newman run newman/postman.json
-.PHONY:newman
-
-push_images: ### push docker images to docker hub
-	@echo "Pushing image..."
-	docker push ${APP_IMAGE_NAME}
-	docker push ${MIGRATE_IMAGE_NAME}
-	@echo "Image pushed successfully!"
-.PHONY:push_images
-
-build_images: build_image_app build_image_migrate ### build docker images
-.PHONY:build_images
-
-build_image_app: ### build app docker image
+# Customer service =====================================================================================================
+build_customer_service: ### build customer service docker image
 	@echo "Building image..."
-	docker build --platform linux/amd64 -t ${APP_IMAGE_NAME} -f ./app/app.dockerfile ./app
+	docker build --platform linux/amd64 -t ${CUSTOMER_IMAGE_NAME} -f ./customer/customer.dockerfile .
 	@echo "Image built successfully!"
 .PHONY:build_image_app
 
-build_image_migrate: ### build migrations docker image
+build_customer_service_migrate: ### build customer service migrate docker image
 	@echo "Building image..."
-	docker build --platform linux/amd64 -t ${MIGRATE_IMAGE_NAME} -f ./app/migrate.dockerfile ./app
+	docker build --platform linux/amd64 -t ${CUSTOMER_MIGRATE_IMAGE_NAME} -f ./customer/customer.migrate.dockerfile .
 	@echo "Image built successfully!"
 .PHONY:build_image_migrate
 
+push_customer_images: ### push customer service docker image to docker hub
+	@echo "Pushing image..."
+	docker push ${CUSTOMER_IMAGE_NAME}
+	docker push ${CUSTOMER_MIGRATE_IMAGE_NAME}
+	@echo "Image pushed successfully!"
 
 # App ==================================================================================================================
 up:
@@ -82,3 +72,13 @@ down_ctrl:
 	@echo "Deleting namespace..."
 	kubectl delete ns ctrl
 	@echo "Done!"
+
+# Newman
+newman: ### run newman tests
+	@echo "Running newman tests..."
+	newman run newman/postman.json
+.PHONY:newman
+
+
+fwd_db: ### port forward to db
+	kubectl port-forward pod/booking-srv-postgresql-0 5432:5432 -n app

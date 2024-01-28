@@ -1,0 +1,86 @@
+{{- if .Values.customerService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-customer
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-customer
+spec:
+  {{- if not .Values.customerService.autoscaling.enabled }}
+  replicas: {{ .Values.customerService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-customer
+  template:
+    metadata:
+      {{- with .Values.customerService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-customer
+    spec:
+      {{- with .Values.customerService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.customerService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: customer
+          securityContext:
+            {{- toYaml .Values.customerService.securityContext | nindent 12 }}
+          image: "{{ .Values.customerService.image.repository }}:{{ .Values.customerService.image.tag }}"
+          imagePullPolicy: {{ .Values.customerService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.customerService.resources | nindent 12 }}
+          env:
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+
+            - name: POSTGRES_DB
+              value: customer
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+
+
+      {{- with .Values.customerService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.customerService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.customerService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
