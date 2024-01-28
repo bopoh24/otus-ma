@@ -8,6 +8,7 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/config"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
+	appMiddleware "github.com/bopoh24/ma_1/pkg/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,7 +33,7 @@ func NewUserService(cfg *config.Config, repo repository.Repository) *UserService
 
 // Run runs the UserService
 func (s *UserService) Run() error {
-	mw := NewMetricsMiddleware(newMetrics())
+	mw := appMiddleware.NewMetricsMiddleware("customer")
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
