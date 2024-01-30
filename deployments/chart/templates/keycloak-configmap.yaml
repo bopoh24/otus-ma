@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: keycloak-configmap
 data:
-  realm.json: |-
-    {{- $.Files.Get "config/keycloak/realm-export.json"  | nindent 6 -}}
+  customer_realm.json: |-
+    {{- $.Files.Get "config/keycloak/customer_realm.json"  | nindent 6 -}}
 

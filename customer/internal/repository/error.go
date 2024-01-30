@@ -2,5 +2,5 @@ package repository
 
 import "errors"
 
-// ErrUserNotFound is returned when a user is not found
-var ErrUserNotFound = errors.New("user not found")
+// ErrCustomerNotFound is returned when a user is not found
+var ErrCustomerNotFound = errors.New("customer not found")

@@ -17,11 +17,12 @@
         "POST",
         "PUT",
         "DELETE",
-        "CONNECT",
         "OPTIONS",
-        "TRACE",
         "PATCH"
       ]
+    },
+    "router": {
+      "return_error_msg": true
     }
   },
   "timeout": "3000ms",
@@ -31,18 +32,18 @@
   "echo_endpoint": true,
   "endpoints": [
     {
-      "endpoint": "/v1/users/me",
+      "endpoint": "/v1/customer/profile",
       "method": "GET",
       "output_encoding": "json",
       "input_headers": ["*"],
       "backend": [
         {
-          "url_pattern": "/user/me",
+          "url_pattern": "/customer/profile",
           "encoding": "json",
           "sd": "static",
           "method": "GET",
           "host": [
-            "http://simple-server-app.app.svc.cluster.local"
+            "http://booking-srv-customer.app.svc.cluster.local"
           ],
           "disable_host_sanitize": false
         }
@@ -50,7 +51,7 @@
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
-          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/app/protocol/openid-connect/certs",
+          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/customer/protocol/openid-connect/certs",
           "cache": true,
           "disable_jwk_security": true,
           "operation_debug": true,
@@ -58,20 +59,19 @@
             [ "sub", "x-user" ],
             [ "email", "x-email" ],
             [ "given_name", "x-given-name" ],
-            [ "family_name", "x-family-name" ],
-            [ "preferred_username", "x-preferred-username" ]
+            [ "family_name", "x-family-name" ]
           ]
         }
       }
     },
     {
-      "endpoint": "/v1/users/me",
+      "endpoint": "/v1/customer/profile",
       "method": "PUT",
       "output_encoding": "json",
       "input_headers": ["*"],
       "backend": [
         {
-          "url_pattern": "/user/me",
+          "url_pattern": "/customer/profile",
           "encoding": "json",
           "sd": "static",
           "method": "PUT",
@@ -89,7 +89,7 @@
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
-          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/app/protocol/openid-connect/certs",
+          "jwk_url": "http://booking-srv-keycloak.app.svc.cluster.local/realms/customer/protocol/openid-connect/certs",
           "cache": true,
           "disable_jwk_security": true,
           "operation_debug": true,
@@ -97,12 +97,60 @@
             [ "sub", "x-user" ],
             [ "email", "x-email" ],
             [ "given_name", "x-given-name" ],
-            [ "family_name", "x-family-name" ],
-            [ "preferred_username", "x-preferred-username" ]
+            [ "family_name", "x-family-name" ]
           ]
         }
       }
     },
+
+    {
+      "endpoint": "/v1/customer/phone/verify",
+      "method": "POST",
+      "output_encoding": "json",
+      "input_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/customer/phone/verify",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": [
+            "http://booking-srv-customer.app.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    {
+      "endpoint": "/v1/customer/phone/verify/check",
+      "method": "POST",
+      "output_encoding": "json",
+      "input_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/customer/phone/verify/check",
+          "encoding": "json",
+          "sd": "static",
+          "method": "POST",
+          "host": [
+            "http://booking-srv-customer.app.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
     {
       "endpoint": "/v1/login",
       "method": "POST",

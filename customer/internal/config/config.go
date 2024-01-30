@@ -17,8 +17,8 @@ type App struct {
 
 type Keycloak struct {
 	Realm        string `env:"KEYCLOAK_REALM" env-default:"app"`
-	URL          string `env:"KEYCLOAK_URL" env-default:"http://auth-server-keycloak.auth.svc.cluster.local"`
-	ClientID     string `env:"KEYCLOAK_CLIENT_ID" env-default:"simple-server"`
+	URL          string `env:"KEYCLOAK_URL" env-default:"http://kycloak.app.svc.cluster.local"`
+	ClientID     string `env:"KEYCLOAK_CLIENT_ID" env-default:"customer-client"`
 	ClientSecret string `env:"KEYCLOAK_CLIENT_SECRET" env-default:"e2e3f4d5-6c7b-8a9b-0c1d-2e3f4d5e6f7a"`
 	Admin        string `env:"KEYCLOAK_ADMIN" env-default:"admin"`
 	Password     string `env:"KEYCLOAK_PASSWORD" env-default:"admin"`

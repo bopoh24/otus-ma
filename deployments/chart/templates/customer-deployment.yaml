@@ -70,6 +70,38 @@ spec:
                   name: secret
                   key: dbPassword
 
+            - name: KEYCLOAK_URL
+              value: http://{{.Release.Name}}-keycloak.{{.Release.Namespace}}.svc.cluster.local
+
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCustomerRealm
+
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCustomerClientId
+
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCustomerClientSecret
+
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminUser
+
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminPassword
 
       {{- with .Values.customerService.nodeSelector }}
       nodeSelector:

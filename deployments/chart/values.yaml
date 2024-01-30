@@ -120,6 +120,10 @@ postgresql:
 
 
 keycloak:
+  customerRealm: customer
+  customerClientId: customer-client
+  customerClientSecret: iibxX87x8syc10XsBwGgXFBoArJSji6C
+
   auth:
     adminUser: admin
     adminPassword: admin
@@ -138,8 +142,9 @@ keycloak:
       configMap:
         name: keycloak-configmap
         items:
-          - key: "realm.json"
-            path: "realm.json"
+          - key: "customer_realm.json"
+            path: "customer_realm.json"
+
   postgresql:
     enabled: false
 

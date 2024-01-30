@@ -13,23 +13,22 @@ help: ### this help information
 .PHONY: help
 
 # Customer service =====================================================================================================
-build_customer_service: ### build customer service docker image
+customer_service: ### build customer service docker image
 	@echo "Building image..."
 	docker build --platform linux/amd64 -t ${CUSTOMER_IMAGE_NAME} -f ./customer/customer.dockerfile .
 	@echo "Image built successfully!"
-.PHONY:build_image_app
+	docker push ${CUSTOMER_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:customer_service
 
-build_customer_service_migrate: ### build customer service migrate docker image
+customer_migrations: ### build customer service migrations docker image
 	@echo "Building image..."
 	docker build --platform linux/amd64 -t ${CUSTOMER_MIGRATE_IMAGE_NAME} -f ./customer/customer.migrate.dockerfile .
 	@echo "Image built successfully!"
-.PHONY:build_image_migrate
-
-push_customer_images: ### push customer service docker image to docker hub
-	@echo "Pushing image..."
-	docker push ${CUSTOMER_IMAGE_NAME}
 	docker push ${CUSTOMER_MIGRATE_IMAGE_NAME}
 	@echo "Image pushed successfully!"
+.PHONY:customer_migrations
+
 
 # App ==================================================================================================================
 up:

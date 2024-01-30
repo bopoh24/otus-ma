@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
+	"github.com/bopoh24/ma_1/customer/internal/app"
 	"github.com/bopoh24/ma_1/customer/internal/config"
-	"github.com/bopoh24/ma_1/customer/internal/repository/pg"
-	"github.com/bopoh24/ma_1/customer/internal/service"
 	"github.com/bopoh24/ma_1/pkg/logger"
 	"log/slog"
 	"os"
+	"os/signal"
+	"time"
 )
 
 func main() {
@@ -18,17 +20,20 @@ func main() {
 	}
 	// init logger
 	log := logger.New(cfg.App.LogLevel)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
-	log.Info("App started", "name", cfg.App.Name)
-	// init repository
-	repo, err := pg.New(cfg.Postgres)
-	if err != nil {
+	// init app
+	a := app.New(cfg, log)
+	if err := a.Run(ctx); err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
 	}
-	srv := service.NewUserService(cfg, repo)
-	if err := srv.Run(); err != nil {
-		log.Error(err.Error())
-		os.Exit(1)
-	}
+
+	// graceful shutdown
+	<-ctx.Done()
+	// closing context
+	closeCtx, closeCancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer closeCancel()
+	a.Close(closeCtx)
 }

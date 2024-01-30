@@ -1,9 +1,11 @@
-CREATE TABLE users (
-    id VARCHAR(255) PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    first_name VARCHAR(255) NOT NULL DEFAULT '',
-    last_name VARCHAR(255) NOT NULL DEFAULT '',
-    phone VARCHAR(255) NOT NULL DEFAULT '',
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE customer (
+    id varchar(255) not null primary key,
+    email varchar(10) not null default '' unique,
+    first_name varchar(50) not null default '',
+    last_name varchar(50) not null default '',
+    photo varchar(255) not null default '',
+    phone varchar(50) not null default '',
+    location point not null default point(0, 0),
+    created_at timestamp not null default current_timestamp,
+    updated_at timestamp not null default current_timestamp
 );

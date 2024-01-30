@@ -1,9 +1,11 @@
 package pg
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/bopoh24/ma_1/customer/internal/config"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
@@ -11,102 +13,82 @@ import (
 )
 
 type Repository struct {
-	db *sql.DB
+	db   *sql.DB
+	psql sq.StatementBuilderType
 }
 
 // New returns a new Repository struct
 func New(dbConf config.Postgres) (*Repository, error) {
-
 	psqlConn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbConf.Host, dbConf.Port, dbConf.User, dbConf.Pass, dbConf.Database)
 	db, err := sql.Open("postgres", psqlConn)
 	if err != nil {
 		return nil, err
 	}
-
-	return &Repository{db: db}, nil
-}
-
-// UserCreate creates a new user
-func (r *Repository) UserCreate(user *model.User) error {
-	q := `INSERT INTO users (external_id, username, first_name, last_name, email, phone) 
-			VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
-	err := r.db.QueryRow(q, user.ExternalID, user.Username, user.FirstName, user.LastName, user.Email, user.Phone).
-		Scan(&user.ID)
+	dbCache := sq.NewStmtCache(db)
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// UserByID returns a user by id
-func (r *Repository) UserByID(id int64) (*model.User, error) {
-	row := r.db.QueryRow("SELECT username, first_name, last_name, email, phone FROM users WHERE id = $1", id)
-	user := &model.User{}
-	err := row.Scan(&user.Username, &user.FirstName, &user.LastName, &user.Email, &user.Phone)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, repository.ErrUserNotFound
-		}
 		return nil, err
 	}
-	return user, nil
+	return &Repository{
+		psql: sq.StatementBuilder.RunWith(dbCache).PlaceholderFormat(sq.Dollar),
+		db:   db,
+	}, nil
+
 }
 
-// UserByExternalID returns a user by external id
-func (r *Repository) UserByExternalID(externalId string) (model.User, error) {
-	row := r.db.QueryRow(
-		`SELECT id, external_id, username, first_name, last_name, email, phone, description 
-				FROM users WHERE external_id = $1`,
-		externalId)
-	user := model.User{}
-	err := row.Scan(&user.ID, &user.ExternalID, &user.Username, &user.FirstName, &user.LastName, &user.Email,
-		&user.Phone, &user.Description)
+// CustomerCreate creates a new customer profile
+func (r *Repository) CustomerCreate(ctx context.Context, customer model.Customer) error {
+	query := r.psql.Insert("customers").
+		Columns("id", "email", "first_name", "last_name").Values(
+		customer.ID, customer.Email, customer.FirstName, customer.LastName)
+	_, err := query.ExecContext(ctx)
+	return err
+}
+
+// CustomerUpdate updates a customer profile
+func (r *Repository) CustomerUpdate(ctx context.Context, customer model.Customer) error {
+	query := r.psql.Update("customers").
+		Set("email", customer.Email).
+		Set("first_name", customer.FirstName).
+		Set("last_name", customer.LastName).
+		Set("updated_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": customer.ID})
+	_, err := query.ExecContext(ctx)
+	return err
+}
+
+// CustomerByID returns a customer profile by id
+func (r *Repository) CustomerByID(ctx context.Context, id string) (model.Customer, error) {
+	query := r.psql.Select("id", "email", "first_name", "last_name", "phone", "location").
+		From("customers").Where(sq.Eq{"id": id})
+	row := query.QueryRowContext(ctx)
+	customer := model.Customer{}
+	err := row.Scan(&customer.ID, &customer.Email, &customer.FirstName, &customer.LastName, &customer.Phone,
+		&customer.Location)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return user, repository.ErrUserNotFound
+			return customer, repository.ErrCustomerNotFound
 		}
-		return user, err
 	}
-	return user, nil
+	return customer, err
 }
 
-// UserUpdate updates a user
-func (r *Repository) UserUpdate(user *model.User) error {
-	q := `UPDATE users SET username = $1, first_name = $2, last_name = $3, email = $4, phone = $5 WHERE id = $6`
-	res, err := r.db.Exec(q, user.Username, user.FirstName, user.LastName, user.Email, user.Phone, user.ID)
-	if err != nil {
-		return err
-	}
-	if rows, _ := res.RowsAffected(); rows == 0 {
-		return repository.ErrUserNotFound
-	}
-	return nil
+// CustomerUpdatePhone updates a customer phone
+func (r *Repository) CustomerUpdatePhone(ctx context.Context, id string, phone string) error {
+	query := r.psql.Update("customers").
+		Set("phone", phone).
+		Set("updated_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": id})
+	_, err := query.ExecContext(ctx)
+	return err
 }
 
-// UserUpdateByExternalID updates a user by external id
-func (r *Repository) UserUpdateByExternalID(user *model.User) error {
-	q := `UPDATE users SET username = $1, first_name = $2, last_name = $3, phone = $4, description = $5 
-             WHERE external_id = $6`
-	res, err := r.db.Exec(q, user.Username, user.FirstName, user.LastName, user.Phone, user.Description,
-		user.ExternalID)
-	if err != nil {
-		return err
-	}
-	if rows, _ := res.RowsAffected(); rows == 0 {
-		return repository.ErrUserNotFound
-	}
-	return nil
-}
-
-// UserDelete deletes a user by id
-func (r *Repository) UserDelete(id int64) error {
-	res, err := r.db.Exec("DELETE FROM users WHERE id = $1", id)
-	if err != nil {
-		return err
-	}
-	if rows, _ := res.RowsAffected(); rows == 0 {
-		return repository.ErrUserNotFound
-	}
-	return nil
+// CustomerUpdateLocation updates a customer location
+func (r *Repository) CustomerUpdateLocation(ctx context.Context, id string, lat float64, lng float64) error {
+	query := r.psql.Update("customers").
+		Set("location", sq.Expr("point(?, ?)", lat, lng)).
+		Set("updated_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": id})
+	_, err := query.ExecContext(ctx)
+	return err
 }
