@@ -53,17 +53,15 @@ func (a *App) Run(ctx context.Context) error {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.SetHeader("Content-Type", "application/json"))
 
-	r.Route("/auth", func(r chi.Router) {
+	r.Route("/customer", func(r chi.Router) {
 		r.Use(mw.Middleware)
 		r.Post("/login", a.login)
 		r.Post("/logout", a.logout)
 		r.Post("/register", a.register)
 		r.Post("/refresh", a.refresh)
-	})
 
-	r.Route("/customer", func(r chi.Router) {
-		r.Use(mw.Middleware)
 		r.Get("/profile", a.customerProfile)
 		r.Put("/profile", a.updateCustomerProfile)
 		r.Post("/phone/verify", a.requestPhoneVerification)

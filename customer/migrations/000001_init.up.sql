@@ -1,6 +1,6 @@
 CREATE TABLE customer (
     id varchar(255) not null primary key,
-    email varchar(10) not null default '' unique,
+    email varchar(100) not null default '' unique,
     first_name varchar(50) not null default '',
     last_name varchar(50) not null default '',
     photo varchar(255) not null default '',

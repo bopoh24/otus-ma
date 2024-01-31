@@ -8,6 +8,7 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
+	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"net/http"
 )
 
@@ -117,7 +118,7 @@ func (a *App) register(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		a.log.Error("Creating user", "err", err)
 		return
 	}
@@ -175,6 +176,7 @@ func (a *App) customerProfile(w http.ResponseWriter, r *http.Request) {
 			Email:     r.Header.Get("X-Email"),
 			FirstName: r.Header.Get("X-Given-Name"),
 			LastName:  r.Header.Get("X-Family-Name"),
+			Phone:     "",
 		}
 
 		err = a.service.CreateCustomerProfile(r.Context(), customer)
@@ -243,6 +245,10 @@ func (a *App) requestPhoneVerification(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	if payload.Phone == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "phone is required")
+		return
+	}
 
 	err = a.service.RequestPhoneVerification(r.Context(), payload.Phone)
 	if err != nil {
@@ -250,7 +256,8 @@ func (a *App) requestPhoneVerification(w http.ResponseWriter, r *http.Request) {
 		a.log.Error("Error requesting phone verification", "err", err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"result":"verification code sent"}`))
 }
 
 func (a *App) verifyPhone(w http.ResponseWriter, r *http.Request) {
@@ -263,12 +270,21 @@ func (a *App) verifyPhone(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	if payload.Phone == "" || payload.Code == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "phone and code are required")
+		return
+	}
 	userID := r.Header.Get("X-User")
 	err = a.service.VerifyPhone(r.Context(), userID, payload.Phone, payload.Code)
 	if err != nil {
+		if errors.Is(err, phone.ErrIncorrectVerificationCode) {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		a.log.Error("Error verifying phone", "err", err)
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"result":"phone verified"}`))
 }

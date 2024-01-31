@@ -1,8 +1,8 @@
 # Customer service
 
-Some description of the service.
-
-
+__TODO__
+- 
+- Customer location CRUD.
 
 
 ### Database Migrations

@@ -38,7 +38,7 @@ func New(dbConf config.Postgres) (*Repository, error) {
 
 // CustomerCreate creates a new customer profile
 func (r *Repository) CustomerCreate(ctx context.Context, customer model.Customer) error {
-	query := r.psql.Insert("customers").
+	query := r.psql.Insert("customer").
 		Columns("id", "email", "first_name", "last_name").Values(
 		customer.ID, customer.Email, customer.FirstName, customer.LastName)
 	_, err := query.ExecContext(ctx)
@@ -47,8 +47,7 @@ func (r *Repository) CustomerCreate(ctx context.Context, customer model.Customer
 
 // CustomerUpdate updates a customer profile
 func (r *Repository) CustomerUpdate(ctx context.Context, customer model.Customer) error {
-	query := r.psql.Update("customers").
-		Set("email", customer.Email).
+	query := r.psql.Update("customer").
 		Set("first_name", customer.FirstName).
 		Set("last_name", customer.LastName).
 		Set("updated_at", sq.Expr("NOW()")).
@@ -59,12 +58,11 @@ func (r *Repository) CustomerUpdate(ctx context.Context, customer model.Customer
 
 // CustomerByID returns a customer profile by id
 func (r *Repository) CustomerByID(ctx context.Context, id string) (model.Customer, error) {
-	query := r.psql.Select("id", "email", "first_name", "last_name", "phone", "location").
-		From("customers").Where(sq.Eq{"id": id})
+	query := r.psql.Select("id", "email", "first_name", "last_name", "phone").
+		From("customer").Where(sq.Eq{"id": id})
 	row := query.QueryRowContext(ctx)
 	customer := model.Customer{}
-	err := row.Scan(&customer.ID, &customer.Email, &customer.FirstName, &customer.LastName, &customer.Phone,
-		&customer.Location)
+	err := row.Scan(&customer.ID, &customer.Email, &customer.FirstName, &customer.LastName, &customer.Phone)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return customer, repository.ErrCustomerNotFound
@@ -75,7 +73,7 @@ func (r *Repository) CustomerByID(ctx context.Context, id string) (model.Custome
 
 // CustomerUpdatePhone updates a customer phone
 func (r *Repository) CustomerUpdatePhone(ctx context.Context, id string, phone string) error {
-	query := r.psql.Update("customers").
+	query := r.psql.Update("customer").
 		Set("phone", phone).
 		Set("updated_at", sq.Expr("NOW()")).
 		Where(sq.Eq{"id": id})
@@ -85,7 +83,7 @@ func (r *Repository) CustomerUpdatePhone(ctx context.Context, id string, phone s
 
 // CustomerUpdateLocation updates a customer location
 func (r *Repository) CustomerUpdateLocation(ctx context.Context, id string, lat float64, lng float64) error {
-	query := r.psql.Update("customers").
+	query := r.psql.Update("customer").
 		Set("location", sq.Expr("point(?, ?)", lat, lng)).
 		Set("updated_at", sq.Expr("NOW()")).
 		Where(sq.Eq{"id": id})
