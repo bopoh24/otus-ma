@@ -120,9 +120,15 @@ postgresql:
 
 
 keycloak:
+  # customer client credentials
   customerRealm: customer
   customerClientId: customer-client
-  customerClientSecret: iibxX87x8syc10XsBwGgXFBoArJSji6C
+  customerClientSecret: wP1BRYU6NvL5WzXuaodeU8KTsQh5bMw0
+
+  # company client credentials
+  companyRealm: company
+  companyClientId: company-client
+  companyClientSecret: GJjUP9kYjF3FG6lSWDXRHN03qEGFTxjr
 
   auth:
     adminUser: admin
@@ -144,6 +150,8 @@ keycloak:
         items:
           - key: "customer_realm.json"
             path: "customer_realm.json"
+          - key: "company_realm.json"
+            path: "company_realm.json"
 
   postgresql:
     enabled: false
