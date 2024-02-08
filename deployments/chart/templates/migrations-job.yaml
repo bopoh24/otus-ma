@@ -8,8 +8,9 @@ spec:
     spec:
       restartPolicy: Never
       containers:
+        {{- if .Values.customerService.enabled }}
         - name: customer-migrate-container
-          image: bopoh24/b-srv-customer-migrate:latest
+          image: bopoh24/booksvc-customer-migrate:latest
           env:
             - name: POSTGRES_HOST
               valueFrom:
@@ -29,4 +30,27 @@ spec:
                   name: secret
                   key: dbPassword
           command: ["migrate", "-verbose", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up"]
-
+        {{- end }}
+        {{- if .Values.companyService.enabled }}
+        - name: company-migrate-container
+          image: bopoh24/booksvc-company-migrate:latest
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+            - name: POSTGRES_DB
+              value: company
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+          command: [ "migrate", "-verbose", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up" ]
+          {{- end }}

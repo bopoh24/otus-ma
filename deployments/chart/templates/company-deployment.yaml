@@ -1,39 +1,39 @@
-{{- if .Values.customerService.enabled }}
+{{- if .Values.companyService.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.Release.Name}}-customer
+  name: {{.Release.Name}}-company
   labels:
-    {{- include "app.labels" . | nindent 4 }}-customer
+    {{- include "app.labels" . | nindent 4 }}-company
 spec:
-  {{- if not .Values.customerService.autoscaling.enabled }}
-  replicas: {{ .Values.customerService.replicaCount }}
+  {{- if not .Values.companyService.autoscaling.enabled }}
+  replicas: {{ .Values.companyService.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "app.selectorLabels" . | nindent 6 }}-customer
+      {{- include "app.selectorLabels" . | nindent 6 }}-company
   template:
     metadata:
-      {{- with .Values.customerService.podAnnotations }}
+      {{- with .Values.companyService.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "app.selectorLabels" . | nindent 8 }}-customer
+        {{- include "app.selectorLabels" . | nindent 8 }}-company
         date: "{{ now | unixEpoch }}"
     spec:
-      {{- with .Values.customerService.imagePullSecrets }}
+      {{- with .Values.companyService.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.customerService.podSecurityContext | nindent 8 }}
+        {{- toYaml .Values.companyService.podSecurityContext | nindent 8 }}
       containers:
-        - name: customer
+        - name: company
           securityContext:
-            {{- toYaml .Values.customerService.securityContext | nindent 12 }}
-          image: "{{ .Values.customerService.image.repository }}:{{ .Values.customerService.image.tag }}"
-          imagePullPolicy: {{ .Values.customerService.image.pullPolicy }}
+            {{- toYaml .Values.companyService.securityContext | nindent 12 }}
+          image: "{{ .Values.companyService.image.repository }}:{{ .Values.companyService.image.tag }}"
+          imagePullPolicy: {{ .Values.companyService.image.pullPolicy }}
           ports:
             - name: http-srv
               containerPort: 80
@@ -47,7 +47,7 @@ spec:
               path: /readyz
               port: http-srv
           resources:
-            {{- toYaml .Values.customerService.resources | nindent 12 }}
+            {{- toYaml .Values.companyService.resources | nindent 12 }}
           env:
 
             - name: POSTGRES_HOST
@@ -57,7 +57,7 @@ spec:
                   key: dbHost
 
             - name: POSTGRES_DB
-              value: customer
+              value: company
 
             - name: POSTRGES_USER
               valueFrom:
@@ -78,19 +78,19 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: secret
-                  key: keycloakCustomerRealm
+                  key: keycloakCompanyRealm
 
             - name: KEYCLOAK_CLIENT_ID
               valueFrom:
                 secretKeyRef:
                   name: secret
-                  key: keycloakCustomerClientId
+                  key: keycloakCompanyClientId
 
             - name: KEYCLOAK_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: secret
-                  key: keycloakCustomerClientSecret
+                  key: keycloakCompanyClientSecret
 
             - name: KEYCLOAK_ADMIN
               valueFrom:
@@ -104,15 +104,15 @@ spec:
                   name: secret
                   key: keycloakAdminPassword
 
-      {{- with .Values.customerService.nodeSelector }}
+      {{- with .Values.companyService.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.customerService.affinity }}
+      {{- with .Values.companyService.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.customerService.tolerations }}
+      {{- with .Values.companyService.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}

@@ -1,8 +1,11 @@
-NAMESPACE=app
-RELEASE_NAME=booking-srv
+NAMESPACE=booksvc
+RELEASE_NAME=booksvc
 
-CUSTOMER_IMAGE_NAME=bopoh24/b-srv-customer:latest
-CUSTOMER_MIGRATE_IMAGE_NAME=bopoh24/b-srv-customer-migrate:latest
+CUSTOMER_IMAGE_NAME=bopoh24/booksvc-customer:latest
+CUSTOMER_MIGRATE_IMAGE_NAME=bopoh24/booksvc-customer-migrate:latest
+COMPANY_IMAGE_NAME=bopoh24/booksvc-company:latest
+COMPANY_MIGRATE_IMAGE_NAME=bopoh24/booksvc-company-migrate:latest
+
 
 
 # HELP =================================================================================================================
@@ -28,6 +31,24 @@ customer_migrations: ### build customer service migrations docker image
 	docker push ${CUSTOMER_MIGRATE_IMAGE_NAME}
 	@echo "Image pushed successfully!"
 .PHONY:customer_migrations
+
+
+# Company service =====================================================================================================
+company_service: ### build customer service docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${COMPANY_IMAGE_NAME} -f ./company/company.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${COMPANY_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:company_service
+
+company_migrations: ### build customer service migrations docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${COMPANY_MIGRATE_IMAGE_NAME} -f ./company/company.migrate.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${COMPANY_MIGRATE_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:company_migrations
 
 
 # App ==================================================================================================================
@@ -80,4 +101,4 @@ newman: ### run newman tests
 
 
 fwd_db: ### port forward to db
-	kubectl port-forward pod/booking-srv-postgresql-0 5432:5432 -n app
+	kubectl port-forward pod/booksvc-postgresql-0 5432:5432 -n app

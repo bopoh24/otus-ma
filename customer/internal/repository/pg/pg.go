@@ -9,29 +9,24 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/config"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
+	"github.com/bopoh24/ma_1/pkg/sql/builder"
 	_ "github.com/lib/pq"
 )
 
 type Repository struct {
-	db   *sql.DB
-	psql sq.StatementBuilderType
+	psql *sq.StatementBuilderType
 }
 
 // New returns a new Repository struct
 func New(dbConf config.Postgres) (*Repository, error) {
 	psqlConn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		dbConf.Host, dbConf.Port, dbConf.User, dbConf.Pass, dbConf.Database)
-	db, err := sql.Open("postgres", psqlConn)
-	if err != nil {
-		return nil, err
-	}
-	dbCache := sq.NewStmtCache(db)
+	psql, err := builder.NewPostgresBuilder(psqlConn)
 	if err != nil {
 		return nil, err
 	}
 	return &Repository{
-		psql: sq.StatementBuilder.RunWith(dbCache).PlaceholderFormat(sq.Dollar),
-		db:   db,
+		psql: psql,
 	}, nil
 
 }
@@ -58,11 +53,12 @@ func (r *Repository) CustomerUpdate(ctx context.Context, customer model.Customer
 
 // CustomerByID returns a customer profile by id
 func (r *Repository) CustomerByID(ctx context.Context, id string) (model.Customer, error) {
-	query := r.psql.Select("id", "email", "first_name", "last_name", "phone").
+	query := r.psql.Select("id", "email", "first_name", "last_name", "phone", "created_at", "updated_at").
 		From("customer").Where(sq.Eq{"id": id})
 	row := query.QueryRowContext(ctx)
 	customer := model.Customer{}
-	err := row.Scan(&customer.ID, &customer.Email, &customer.FirstName, &customer.LastName, &customer.Phone)
+	err := row.Scan(&customer.ID, &customer.Email, &customer.FirstName, &customer.LastName, &customer.Phone,
+		&customer.Created, &customer.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return customer, repository.ErrCustomerNotFound

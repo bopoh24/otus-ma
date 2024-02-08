@@ -1,4 +1,4 @@
-package middleware
+package router
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -24,12 +24,16 @@ func NewMetricsMiddleware(namespace string) *MetricsMiddleware {
 	}
 }
 
-func (m *MetricsMiddleware) Middleware(next http.Handler) http.Handler {
+func (m *MetricsMiddleware) Metrics(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		sw := &statusWriter{ResponseWriter: w, statusCode: http.StatusOK}
 		next.ServeHTTP(sw, r)
 		pattern := chi.RouteContext(r.Context()).RoutePattern()
+		// skip healthz, readyz and metrics endpoints
+		if pattern == "/healthz" || pattern == "/readyz" || pattern == "/metrics" {
+			return
+		}
 		m.metrics.latency.WithLabelValues(pattern, r.Method, strconv.Itoa(sw.statusCode)).Observe(time.Since(start).Seconds())
 		m.metrics.rps.WithLabelValues(pattern, r.Method, strconv.Itoa(sw.statusCode)).Inc()
 	}

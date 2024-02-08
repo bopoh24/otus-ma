@@ -3,11 +3,10 @@ package app
 import (
 	"context"
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/bopoh24/ma_1/customer/internal/config"
-	"github.com/bopoh24/ma_1/customer/internal/repository/pg"
-	"github.com/bopoh24/ma_1/customer/internal/service"
+	"github.com/bopoh24/ma_1/company/internal/config"
+	"github.com/bopoh24/ma_1/company/internal/repository/pg"
+	"github.com/bopoh24/ma_1/company/internal/service"
 	"github.com/bopoh24/ma_1/pkg/http/router"
-	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net/http"
@@ -36,27 +35,24 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	// init phone verifier
-	phoneVerifier, err := phone.NewStubPhoneVerify()
-	if err != nil {
-		return err
-	}
-	a.service = service.New(a.conf, repo, phoneVerifier)
-
-	r := router.New("customer")
-	r.Route("/customer", func(r chi.Router) {
+	a.service = service.New(a.conf, repo)
+	r := router.New("company")
+	r.Route("/company", func(r chi.Router) {
 		r.Post("/login", a.handlerLogin)
-		r.Post("/logout", a.hanlderLogout)
+		r.Post("/logout", a.handlerLogout)
 		r.Post("/register", a.handlerRegister)
 		r.Post("/refresh", a.handlerRefresh)
+		r.Get("/{id}", a.handlerCompanyDetails)
+		r.Put("/{id}", a.handlerUpdateCompany)
 
-		r.Get("/profile", a.handlerProfile)
-		r.Put("/profile", a.handlerProfileUpdate)
-		r.Post("/phone/verify", a.handlerRequestPhoneVerification)
-		r.Post("/phone/verify/check", a.handlerVerifyPhone)
-		r.Get("/{id}", a.handlerCustomerByID)
+		r.Post("/{id}/logo", a.handlerUpdateLogo)
+		r.Post("/{id}/location", a.handlerUpdateLocation)
+		r.Post("/{id}/activate", a.handlerActivateDeactivate(true))
+		r.Post("/{id}/deactivate", a.handlerActivateDeactivate(false))
+
+		r.Post("/", a.handlerCreateCompany)
 	})
+
 	a.server.Handler = r
 	return a.server.ListenAndServe()
 }

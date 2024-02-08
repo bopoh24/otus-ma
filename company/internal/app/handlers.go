@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/Nerzal/gocloak/v13"
-	"github.com/bopoh24/ma_1/customer/internal/model"
-	"github.com/bopoh24/ma_1/customer/internal/repository"
+	"github.com/bopoh24/ma_1/company/internal/model"
+	"github.com/bopoh24/ma_1/company/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
-	"github.com/bopoh24/ma_1/pkg/verifier/phone"
+	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 )
 
 func (a *App) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,7 @@ func (a *App) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) hanlderLogout(w http.ResponseWriter, r *http.Request) {
+func (a *App) handlerLogout(w http.ResponseWriter, r *http.Request) {
 	payload := struct {
 		RefreshToken string `json:"refreshToken"`
 	}{}
@@ -138,153 +139,143 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// byID returns a user by id
-func (a *App) handlerCustomerByID(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("X-User")
-	// get user by id
-	customer, err := a.service.CustomerByID(r.Context(), userID)
+func (a *App) handlerCompanyDetails(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		if errors.Is(err, repository.ErrCustomerNotFound) {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	company, err := a.service.CompanyByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
 			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Get customer by id", "err", err)
 		return
 	}
-
-	// write user to response body
-	err = json.NewEncoder(w).Encode(customer)
-	if err != nil {
+	// return company
+	if err := json.NewEncoder(w).Encode(company); err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 }
 
-func (a *App) handlerProfile(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("X-User")
-	customer, err := a.service.CustomerByID(r.Context(), userID)
-	if err != nil {
-		if !errors.Is(err, repository.ErrCustomerNotFound) {
-			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-			a.log.Error("Get customer by id", "err", err)
-			return
-		}
-		// create new user
-		customer = model.Customer{
-			ID:        userID,
-			Email:     r.Header.Get("X-Email"),
-			FirstName: r.Header.Get("X-Given-Name"),
-			LastName:  r.Header.Get("X-Family-Name"),
-			Phone:     "",
-		}
-
-		err = a.service.CreateCustomerProfile(r.Context(), customer)
-		if err != nil {
-			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-			a.log.Error("Error creating customer", "err", err)
-			return
-		}
-	}
-	// write user to response body
-	err = json.NewEncoder(w).Encode(customer)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error encoding user: ", err)
-		return
-	}
-}
-
-func (a *App) handlerProfileUpdate(w http.ResponseWriter, r *http.Request) {
-	var payload model.Customer
-	err := json.NewDecoder(r.Body).Decode(&payload)
+func (a *App) handlerUpdateCompany(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	payload.ID = r.Header.Get("X-User")
-	// update customer profile
-	err = a.service.UpdateCustomerProfile(r.Context(), payload)
-	if err != nil {
-		if !errors.Is(err, repository.ErrCustomerNotFound) {
-			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-			a.log.Error("Error updating customer profile", "err", err)
-			return
-		}
-		// create new profile
-		payload.Email = r.Header.Get("X-Email")
-		err = a.service.CreateCustomerProfile(r.Context(), payload)
-		if err != nil {
-			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-			a.log.Error("Error creating customer profile", "err", err)
-			return
-		}
-	}
-
-	customer, err := a.service.CustomerByID(r.Context(), payload.ID)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error getting user by external id", "err", err)
-		return
-	}
-	// write user to response body
-	err = json.NewEncoder(w).Encode(customer)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error encoding user", "err", err)
-		return
-	}
-}
-
-func (a *App) handlerRequestPhoneVerification(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Phone string `json:"phone"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	var company model.Company
+	err = json.NewDecoder(r.Body).Decode(&company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if payload.Phone == "" {
-		helper.ErrorResponse(w, http.StatusBadRequest, "phone is required")
-		return
-	}
-
-	err = a.service.RequestPhoneVerification(r.Context(), payload.Phone)
+	company.ID = id
+	err = a.service.UpdateCompany(r.Context(), company)
 	if err != nil {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error requesting phone verification", "err", err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result":"verification code sent"}`))
 }
 
-func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Phone string `json:"phone"`
-		Code  string `json:"code"`
-	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
+func (a *App) handlerUpdateLogo(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if payload.Phone == "" || payload.Code == "" {
-		helper.ErrorResponse(w, http.StatusBadRequest, "phone and code are required")
+	payload := struct {
+		Logo string `json:"logo"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	userID := r.Header.Get("X-User")
-	err = a.service.VerifyPhone(r.Context(), userID, payload.Phone, payload.Code)
+	err = a.service.UpdateCompanyLogo(r.Context(), id, payload.Logo)
 	if err != nil {
-		if errors.Is(err, phone.ErrIncorrectVerificationCode) {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handlerUpdateLocation(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	payload := struct {
+		Lat float64 `json:"lat"`
+		Lng float64 `json:"lng"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	err = a.service.UpdateCompanyLocation(r.Context(), id, payload.Lat, payload.Lng)
+	if err != nil {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) handlerActivateDeactivate(active bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "id")
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
 			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error verifying phone", "err", err)
+
+		err = a.service.ActivateDeactivateCompany(r.Context(), id, active)
+		if err != nil {
+			if errors.Is(err, repository.ErrCompanyNotFound) {
+				helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+				return
+			}
+			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (a *App) handlerCreateCompany(w http.ResponseWriter, r *http.Request) {
+	var company model.Company
+	err := json.NewDecoder(r.Body).Decode(&company)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result":"phone verified"}`))
+	err = a.service.CreateCompany(r.Context(), company)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }

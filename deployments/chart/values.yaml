@@ -11,7 +11,7 @@ customerService:
   enabled: true
   replicaCount: 1
   image:
-    repository: bopoh24/b-srv-customer
+    repository: bopoh24/booksvc-customer
     pullPolicy: Always
     tag: latest
   service:
@@ -20,10 +20,10 @@ customerService:
   autoscaling: {}
 
 companyService:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
-    repository: bopoh24/b-srv-company
+    repository: bopoh24/booksvc-company
     pullPolicy: Always
     tag: latest
   service:
@@ -35,7 +35,7 @@ bookingService:
   enabled: false
   replicaCount: 1
   image:
-    repository: bopoh24/b-srv-booking
+    repository: bopoh24/booksvc-booking
     pullPolicy: Always
     tag: latest
   service:
@@ -47,7 +47,7 @@ paymentService:
   enabled: false
   replicaCount: 1
   image:
-    repository: bopoh24/b-srv-payment
+    repository: bopoh24/booksvc-payment
     pullPolicy: Always
     tag: latest
   service:
@@ -59,7 +59,7 @@ notificationService:
   enabled: false
   replicaCount: 1
   image:
-    repository: bopoh24/b-srv-notification
+    repository: bopoh24/booksvc-notification
     pullPolicy: Always
     tag: latest
   service:
@@ -167,20 +167,19 @@ keycloak:
   ingress:
     enabled: true
     ingressClassName: nginx
-    hostname: keycloak.local
-
+    hostname: auth.booksvc.com
 
 
 krakend:
-  enabled: true
-  #krakend: # TODO: add krakend config now it passed in helm command
-  #  configFileSource: ../config/krakend/krakend.json
-  ingress:
     enabled: true
-    className: nginx
-    hosts:
-      - host: arch.homework
-        paths:
+    #krakend: # TODO: add krakend config now it passed in helm command
+    #  configFileSource: ../config/krakend/krakend.json
+    ingress:
+        enabled: true
+        className: nginx
+        hosts:
+        - host: booksvc.com
+          paths:
           - path: /
             pathType: ImplementationSpecific
 
