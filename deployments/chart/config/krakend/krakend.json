@@ -367,7 +367,7 @@
       ]
     },
     {
-      "endpoint": "/api/v1/company/refresh",
+      "endpoint": "/api/v1/company/token",
       "method": "POST",
       "output_encoding": "no-op",
       "backend": [
@@ -414,6 +414,9 @@
       "endpoint": "/api/v1/company/{id}",
       "method": "GET",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -463,6 +466,9 @@
       "endpoint": "/api/v1/company/{id}",
       "method": "PUT",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -512,6 +518,9 @@
       "endpoint": "/api/v1/company/{id}/logo",
       "method": "POST",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -561,6 +570,9 @@
       "endpoint": "/api/v1/company/{id}/location",
       "method": "POST",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -610,6 +622,9 @@
       "endpoint": "/api/v1/company/{id}/activate",
       "method": "POST",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -659,6 +674,9 @@
       "endpoint": "/api/v1/company/{id}/deactivate",
       "method": "POST",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -705,9 +723,12 @@
       ]
     },
     {
-      "endpoint": "/api/v1/company/{id}",
+      "endpoint": "/api/v1/company",
       "method": "POST",
       "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -737,7 +758,7 @@
       },
       "backend": [
         {
-          "url_pattern": "/company/{id}",
+          "url_pattern": "/company",
           "encoding": "no-op",
           "sd": "static",
           "method": "POST",

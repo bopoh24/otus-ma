@@ -140,9 +140,13 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 
 // byID returns a user by id
 func (a *App) handlerCustomerByID(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("X-User")
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
 	// get user by id
-	customer, err := a.service.CustomerByID(r.Context(), userID)
+	customer, err := a.service.CustomerByID(r.Context(), claims.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrCustomerNotFound) {
 			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
@@ -162,8 +166,12 @@ func (a *App) handlerCustomerByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handlerProfile(w http.ResponseWriter, r *http.Request) {
-	userID := r.Header.Get("X-User")
-	customer, err := a.service.CustomerByID(r.Context(), userID)
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	customer, err := a.service.CustomerByID(r.Context(), claims.Id)
 	if err != nil {
 		if !errors.Is(err, repository.ErrCustomerNotFound) {
 			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -172,11 +180,10 @@ func (a *App) handlerProfile(w http.ResponseWriter, r *http.Request) {
 		}
 		// create new user
 		customer = model.Customer{
-			ID:        userID,
-			Email:     r.Header.Get("X-Email"),
-			FirstName: r.Header.Get("X-Given-Name"),
-			LastName:  r.Header.Get("X-Family-Name"),
-			Phone:     "",
+			ID:        claims.Id,
+			Email:     claims.Email,
+			FirstName: claims.FirstName,
+			LastName:  claims.LastName,
 		}
 
 		err = a.service.CreateCustomerProfile(r.Context(), customer)
@@ -196,13 +203,19 @@ func (a *App) handlerProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handlerProfileUpdate(w http.ResponseWriter, r *http.Request) {
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
 	var payload model.Customer
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	payload.ID = r.Header.Get("X-User")
+	payload.ID = claims.Id
 	// update customer profile
 	err = a.service.UpdateCustomerProfile(r.Context(), payload)
 	if err != nil {
@@ -212,7 +225,7 @@ func (a *App) handlerProfileUpdate(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// create new profile
-		payload.Email = r.Header.Get("X-Email")
+		payload.Email = claims.Email
 		err = a.service.CreateCustomerProfile(r.Context(), payload)
 		if err != nil {
 			helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -261,11 +274,16 @@ func (a *App) handlerRequestPhoneVerification(w http.ResponseWriter, r *http.Req
 }
 
 func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
 	var payload struct {
 		Phone string `json:"phone"`
 		Code  string `json:"code"`
 	}
-	err := json.NewDecoder(r.Body).Decode(&payload)
+	err = json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
@@ -274,8 +292,7 @@ func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, "phone and code are required")
 		return
 	}
-	userID := r.Header.Get("X-User")
-	err = a.service.VerifyPhone(r.Context(), userID, payload.Phone, payload.Code)
+	err = a.service.VerifyPhone(r.Context(), claims.Id, payload.Phone, payload.Code)
 	if err != nil {
 		if errors.Is(err, phone.ErrIncorrectVerificationCode) {
 			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())

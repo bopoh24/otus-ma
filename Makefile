@@ -16,7 +16,8 @@ help: ### this help information
 .PHONY: help
 
 # Customer service =====================================================================================================
-customer_service: ### build customer service docker image
+
+customer_service: customer_test ### build customer service docker image
 	@echo "Building image..."
 	docker build --platform linux/amd64 -t ${CUSTOMER_IMAGE_NAME} -f ./customer/customer.dockerfile .
 	@echo "Image built successfully!"
@@ -32,9 +33,15 @@ customer_migrations: ### build customer service migrations docker image
 	@echo "Image pushed successfully!"
 .PHONY:customer_migrations
 
+customer_test: ### run tests for customer service
+	@echo "Testing customer service..."
+	go test -v ./customer/...
+.PHONY:customer_test
+
 
 # Company service =====================================================================================================
-company_service: ### build customer service docker image
+
+company_service: company_test ### build customer service docker image
 	@echo "Building image..."
 	docker build --platform linux/amd64 -t ${COMPANY_IMAGE_NAME} -f ./company/company.dockerfile .
 	@echo "Image built successfully!"
@@ -49,6 +56,11 @@ company_migrations: ### build customer service migrations docker image
 	docker push ${COMPANY_MIGRATE_IMAGE_NAME}
 	@echo "Image pushed successfully!"
 .PHONY:company_migrations
+
+company_test: ### run tests for company service
+	@echo "Testing company service..."
+	go test -v ./company/...
+.PHONY:company_test
 
 
 # App ==================================================================================================================

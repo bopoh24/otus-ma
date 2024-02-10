@@ -338,6 +338,22 @@ func TestHandlerCreateCompany(t *testing.T) {
 
 	t.Run("Bad request", func(t *testing.T) {
 		r := httptest.NewRequest("POST", "/company", nil)
+		r.Header.Set("X-User", "123")
+		r.Header.Set("X-Email", "some@mail.com")
+		w := httptest.NewRecorder()
+		repo := mock.NewMockRepository(ctrl)
+		a := createMockApp(repo)
+		a.handlerCreateCompany(w, r)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Bad request no name", func(t *testing.T) {
+		body := model.Company{}
+		reqBody, err := json.Marshal(body)
+		assert.NoError(t, err)
+		r := httptest.NewRequest("POST", "/company", bytes.NewReader(reqBody))
+		r.Header.Set("X-User", "123")
+		r.Header.Set("X-Email", "some@mail.com")
 		w := httptest.NewRecorder()
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)

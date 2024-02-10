@@ -27,6 +27,8 @@ func TestHandlerProfile(t *testing.T) {
 	defer ctrl.Finish()
 
 	r := httptest.NewRequest("GET", "/customer/profile", nil)
+	r.Header.Set("X-User", "123")
+	r.Header.Set("X-Email", "some@mail.com")
 	userID := "123"
 	r.Header.Set("X-User", userID)
 
@@ -57,6 +59,7 @@ func TestHandlerProfileUpdate(t *testing.T) {
 	t.Run("Bad request", func(t *testing.T) {
 		r := httptest.NewRequest("PUT", "/customer/profile", nil)
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		app := createMockApp(repo, nil)
@@ -76,6 +79,7 @@ func TestHandlerProfileUpdate(t *testing.T) {
 
 		r := httptest.NewRequest("PUT", "/customer/profile", bytes.NewBuffer(data))
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		app := createMockApp(repo, nil)
@@ -98,11 +102,14 @@ func TestHandlerProfileUpdate(t *testing.T) {
 
 		r := httptest.NewRequest("PUT", "/customer/profile", bytes.NewBuffer(data))
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		app := createMockApp(repo, nil)
 		body.ID = userID
 		repo.EXPECT().CustomerUpdate(gomock.Any(), body).Return(repository.ErrCustomerNotFound)
+		// create new profile using user email
+		body.Email = "some@mail.com"
 		repo.EXPECT().CustomerCreate(gomock.Any(), body).Return(nil)
 		repo.EXPECT().CustomerByID(gomock.Any(), userID).Return(body, nil)
 		w := httptest.NewRecorder()
@@ -121,6 +128,7 @@ func TestHandlerRequestPhoneVerification(t *testing.T) {
 	t.Run("Bad request", func(t *testing.T) {
 		r := httptest.NewRequest("POST", "/customer/phone/verify", nil)
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		app := createMockApp(repo, nil)
@@ -158,6 +166,7 @@ func TestHandlerVerifyPhone(t *testing.T) {
 	t.Run("Bad request", func(t *testing.T) {
 		r := httptest.NewRequest("POST", "/customer/phone/verify/check", nil)
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		app := createMockApp(repo, nil)
@@ -180,6 +189,7 @@ func TestHandlerVerifyPhone(t *testing.T) {
 
 		r := httptest.NewRequest("POST", "/customer/phone/verify/check", bytes.NewBuffer(data))
 		r.Header.Set("X-User", userID)
+		r.Header.Set("X-Email", "some@mail.com")
 
 		repo := mock.NewMockRepository(ctrl)
 		phoneVerifier := verifierMock.NewMockVerifier(ctrl)

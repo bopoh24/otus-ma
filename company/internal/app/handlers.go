@@ -266,19 +266,24 @@ func (a *App) handlerActivateDeactivate(active bool) http.HandlerFunc {
 }
 
 func (a *App) handlerCreateCompany(w http.ResponseWriter, r *http.Request) {
-
-	userID := r.Header.Get("X-User")
-	email := r.Header.Get("X-Email")
-	firstName := r.Header.Get("X-Given-Name")
-	lastName := r.Header.Get("X-Family-Name")
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
 
 	var company model.Company
-	err := json.NewDecoder(r.Body).Decode(&company)
+	err = json.NewDecoder(r.Body).Decode(&company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	err = a.service.CreateCompany(r.Context(), userID, email, firstName, lastName, company)
+	if company.Name == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "company name is required")
+		return
+	}
+
+	err = a.service.CreateCompany(r.Context(), claims.Id, claims.Email, claims.FirstName, claims.LastName, company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
