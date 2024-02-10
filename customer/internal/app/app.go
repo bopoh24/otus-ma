@@ -4,12 +4,13 @@ import (
 	"context"
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/bopoh24/ma_1/customer/internal/config"
-	"github.com/bopoh24/ma_1/customer/internal/repository/pg"
+	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/customer/internal/service"
 	"github.com/bopoh24/ma_1/pkg/http/router"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
+	"net"
 	"net/http"
 )
 
@@ -32,17 +33,17 @@ func New(conf *config.Config, log *slog.Logger) *App {
 
 func (a *App) Run(ctx context.Context) error {
 	// init repository
-	repo, err := pg.New(a.conf.Postgres)
+	repo, err := repository.New(a.conf.Postgres)
 	if err != nil {
 		return err
 	}
 
 	// init phone verifier
-	phoneVerifier, err := phone.NewStubPhoneVerify()
+	phoneVerifier := phone.NewStubPhoneVerify()
 	if err != nil {
 		return err
 	}
-	a.service = service.New(a.conf, repo, phoneVerifier)
+	a.service = service.New(repo, phoneVerifier)
 
 	r := router.New("customer")
 	r.Route("/customer", func(r chi.Router) {
@@ -57,6 +58,10 @@ func (a *App) Run(ctx context.Context) error {
 		r.Post("/phone/verify/check", a.handlerVerifyPhone)
 		r.Get("/{id}", a.handlerCustomerByID)
 	})
+	// set base context
+	a.server.BaseContext = func(listener net.Listener) context.Context {
+		return ctx
+	}
 	a.server.Handler = r
 	return a.server.ListenAndServe()
 }

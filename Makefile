@@ -101,4 +101,4 @@ newman: ### run newman tests
 
 
 fwd_db: ### port forward to db
-	kubectl port-forward pod/booksvc-postgresql-0 5432:5432 -n app
+	kubectl port-forward pod/${RELEASE_NAME}-postgresql-0 5432:5432 -n ${NAMESPACE}

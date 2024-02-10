@@ -14,10 +14,10 @@ type StubPhoneVerify struct {
 }
 
 // NewStubPhoneVerify creates instance of Twilio verifier
-func NewStubPhoneVerify() (*StubPhoneVerify, error) {
+func NewStubPhoneVerify() *StubPhoneVerify {
 	return &StubPhoneVerify{
 		phoneCodes: make(map[string]struct{}),
-	}, nil
+	}
 }
 
 // Send sends verification code

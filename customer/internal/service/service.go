@@ -2,29 +2,28 @@ package service
 
 import (
 	"context"
-	"github.com/bopoh24/ma_1/customer/internal/config"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 )
 
+//go:generate mockgen -source service.go -destination ../../mocks/repository.go -package mock Repository
 type Repository interface {
 	CustomerCreate(ctx context.Context, customer model.Customer) error
 	CustomerUpdate(ctx context.Context, customer model.Customer) error
 	CustomerByID(ctx context.Context, id string) (model.Customer, error)
 	CustomerUpdatePhone(ctx context.Context, id string, phone string) error
 	CustomerUpdateLocation(ctx context.Context, id string, lat float64, lng float64) error
+	Close(ctx context.Context) error
 }
 
 type Service struct {
 	repo          Repository
 	phoneVerifier phone.Verifier
-	conf          *config.Config
 }
 
 // New returns a new Service instance
-func New(cfg *config.Config, repo Repository, phoneVerifier phone.Verifier) *Service {
+func New(repo Repository, phoneVerifier phone.Verifier) *Service {
 	return &Service{
-		conf:          cfg,
 		repo:          repo,
 		phoneVerifier: phoneVerifier,
 	}
@@ -62,4 +61,9 @@ func (s *Service) VerifyPhone(ctx context.Context, id string, phone string, code
 // UpdateCustomerLocation updates a customer location
 func (s *Service) UpdateCustomerLocation(ctx context.Context, id string, lat float64, lng float64) error {
 	return s.repo.CustomerUpdateLocation(ctx, id, lat, lng)
+}
+
+// Close closes the service
+func (s *Service) Close(ctx context.Context) error {
+	return s.repo.Close(ctx)
 }

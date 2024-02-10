@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/bopoh24/ma_1/company/internal/app"
 	"github.com/bopoh24/ma_1/company/internal/config"
 	"github.com/bopoh24/ma_1/pkg/logger"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -25,7 +27,11 @@ func main() {
 
 	// init app
 	a := app.New(cfg, log)
-	if err := a.Run(ctx); err != nil {
+	if err = a.Run(ctx); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			slog.Info("server closed")
+			return
+		}
 		log.Error(err.Error())
 		os.Exit(1)
 	}

@@ -266,16 +266,45 @@ func (a *App) handlerActivateDeactivate(active bool) http.HandlerFunc {
 }
 
 func (a *App) handlerCreateCompany(w http.ResponseWriter, r *http.Request) {
+
+	userID := r.Header.Get("X-User")
+	email := r.Header.Get("X-Email")
+	firstName := r.Header.Get("X-Given-Name")
+	lastName := r.Header.Get("X-Family-Name")
+
 	var company model.Company
 	err := json.NewDecoder(r.Body).Decode(&company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	err = a.service.CreateCompany(r.Context(), company)
+	err = a.service.CreateCompany(r.Context(), userID, email, firstName, lastName, company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (a *App) handlerGetManagers(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	managers, err := a.service.CompanyManagers(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	// return managers
+	if err := json.NewEncoder(w).Encode(managers); err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 }
