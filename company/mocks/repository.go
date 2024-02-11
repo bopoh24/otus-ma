@@ -240,6 +240,21 @@ func (mr *MockRepositoryMockRecorder) ManagerInvite(ctx, companyID, email, role 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ManagerInvite", reflect.TypeOf((*MockRepository)(nil).ManagerInvite), ctx, companyID, email, role)
 }
 
+// ManagerRole mocks base method.
+func (m *MockRepository) ManagerRole(ctx context.Context, companyId int64, userId string) (model.MangerRole, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ManagerRole", ctx, companyId, userId)
+	ret0, _ := ret[0].(model.MangerRole)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ManagerRole indicates an expected call of ManagerRole.
+func (mr *MockRepositoryMockRecorder) ManagerRole(ctx, companyId, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ManagerRole", reflect.TypeOf((*MockRepository)(nil).ManagerRole), ctx, companyId, userId)
+}
+
 // ManagerSetRole mocks base method.
 func (m *MockRepository) ManagerSetRole(ctx context.Context, id int64, role model.MangerRole) error {
 	m.ctrl.T.Helper()

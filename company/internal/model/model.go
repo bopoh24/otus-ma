@@ -4,16 +4,16 @@ import "time"
 
 type Company struct {
 	ID          int64      `json:"id,omitempty"`
-	Logo        string     `json:"logo,omitempty"`
+	Logo        string     `json:"logo"`
 	Name        string     `json:"name"`
-	Description string     `json:"description,omitempty"`
+	Description string     `json:"description"`
 	Address     string     `json:"address"`
-	Phone       string     `json:"phone,omitempty"`
-	Email       string     `json:"email,omitempty"`
-	Location    []float64  `json:"location,omitempty"`
-	Active      bool       `json:"active,omitempty"`
-	Created     *time.Time `json:"created,omitempty"`
-	Updated     *time.Time `json:"updated,omitempty"`
+	Phone       string     `json:"phone"`
+	Email       string     `json:"email"`
+	Location    []float64  `json:"location"`
+	Active      bool       `json:"active"`
+	Created     *time.Time `json:"created"`
+	Updated     *time.Time `json:"updated"`
 }
 
 type MangerRole string

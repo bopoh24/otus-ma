@@ -24,6 +24,7 @@ type Repository interface {
 	ManagerActivateDeactivate(ctx context.Context, id int64, active bool) error
 	ManagerSetRole(ctx context.Context, id int64, role model.MangerRole) error
 	ManagerDelete(ctx context.Context, id int64) error
+	ManagerRole(ctx context.Context, companyId int64, userId string) (model.MangerRole, error)
 	Close(ctx context.Context) error
 }
 
@@ -103,4 +104,8 @@ func (s *Service) ManagerDelete(ctx context.Context, id int64) error {
 
 func (s *Service) Close(ctx context.Context) error {
 	return s.repo.Close(ctx)
+}
+
+func (s *Service) ManagerRole(ctx context.Context, companyId int64, userId string) (model.MangerRole, error) {
+	return s.repo.ManagerRole(ctx, companyId, userId)
 }

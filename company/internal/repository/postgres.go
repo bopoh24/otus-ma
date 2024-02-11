@@ -244,6 +244,22 @@ func (r *Repository) ManagerInvite(ctx context.Context, companyID int64, email s
 	panic("implement me")
 }
 
+// ManagerRole returns a manager role
+func (r *Repository) ManagerRole(ctx context.Context, companyId int64, userId string) (model.MangerRole, error) {
+	q := r.psql.Builder().Select("role").From("company_manager").
+		Where(sq.Eq{"company_id": companyId, "user_id": userId})
+	row := q.QueryRowContext(ctx)
+	var role model.MangerRole
+	err := row.Scan(&role)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return role, ErrManagerNotFound
+		}
+		return "", err
+	}
+	return role, nil
+}
+
 // Close closes the database connection
 func (r *Repository) Close(ctx context.Context) error {
 	return r.psql.Close()

@@ -72,9 +72,11 @@ func TestHandlerUpdateCompany(t *testing.T) {
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 		rctx.URLParams.Add("id", "2")
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		a.handlerUpdateCompany(w, r)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -87,6 +89,7 @@ func TestHandlerUpdateCompany(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("PUT", "/company/{id}", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 
 		rctx := chi.NewRouteContext()
@@ -95,6 +98,7 @@ func TestHandlerUpdateCompany(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdate(gomock.Any(), gomock.Any()).Return(repository.ErrCompanyNotFound).Times(1)
 		a.handlerUpdateCompany(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -108,6 +112,7 @@ func TestHandlerUpdateCompany(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("PUT", "/company/{id}", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
@@ -115,6 +120,7 @@ func TestHandlerUpdateCompany(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdate(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		a.handlerUpdateCompany(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -130,10 +136,12 @@ func TestHandlerUpdateLogo(t *testing.T) {
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		rctx.URLParams.Add("id", "2")
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		a.handlerUpdateLogo(w, r)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -146,6 +154,7 @@ func TestHandlerUpdateLogo(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company/{id}/logo", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 
 		rctx := chi.NewRouteContext()
@@ -154,6 +163,7 @@ func TestHandlerUpdateLogo(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdateLogo(gomock.Any(), gomock.Any(), gomock.Any()).Return(repository.ErrCompanyNotFound).Times(1)
 		a.handlerUpdateLogo(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -167,6 +177,7 @@ func TestHandlerUpdateLogo(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company/{id}/logo", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
@@ -174,6 +185,7 @@ func TestHandlerUpdateLogo(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdateLogo(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		a.handlerUpdateLogo(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -189,10 +201,12 @@ func TestHandlerUpdateLocation(t *testing.T) {
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		rctx.URLParams.Add("id", "2")
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		a.handlerUpdateLocation(w, r)
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -208,6 +222,7 @@ func TestHandlerUpdateLocation(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company/{id}/location", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 
 		rctx := chi.NewRouteContext()
@@ -216,6 +231,7 @@ func TestHandlerUpdateLocation(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdateLocation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(repository.ErrCompanyNotFound).Times(1)
 		a.handlerUpdateLocation(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -232,6 +248,7 @@ func TestHandlerUpdateLocation(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company/{id}/location", bytes.NewReader(reqBody))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
@@ -239,6 +256,7 @@ func TestHandlerUpdateLocation(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyUpdateLocation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		a.handlerUpdateLocation(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -264,10 +282,12 @@ func TestHandlerActivateDeactivate(t *testing.T) {
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		rctx.URLParams.Add("id", "2")
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyActivateDeactivate(gomock.Any(), gomock.Any(), gomock.Any()).Return(repository.ErrCompanyNotFound).Times(1)
 		a.handlerActivateDeactivate(true)(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
@@ -278,10 +298,12 @@ func TestHandlerActivateDeactivate(t *testing.T) {
 		w := httptest.NewRecorder()
 		rctx := chi.NewRouteContext()
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		rctx.URLParams.Add("id", "2")
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
+		repo.EXPECT().ManagerRole(gomock.Any(), int64(2), "123").Return(model.MangerRoleAdmin, nil).Times(1)
 		repo.EXPECT().CompanyActivateDeactivate(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).Times(1)
 		a.handlerActivateDeactivate(true)(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
@@ -338,8 +360,7 @@ func TestHandlerCreateCompany(t *testing.T) {
 
 	t.Run("Bad request", func(t *testing.T) {
 		r := httptest.NewRequest("POST", "/company", nil)
-		r.Header.Set("X-User", "123")
-		r.Header.Set("X-Email", "some@mail.com")
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
@@ -352,8 +373,7 @@ func TestHandlerCreateCompany(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company", bytes.NewReader(reqBody))
-		r.Header.Set("X-User", "123")
-		r.Header.Set("X-Email", "some@mail.com")
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
@@ -368,11 +388,7 @@ func TestHandlerCreateCompany(t *testing.T) {
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
 		r := httptest.NewRequest("POST", "/company", bytes.NewReader(reqBody))
-		r.Header.Set("X-User", "123")
-		r.Header.Set("X-Email", "mail@mail.com")
-		r.Header.Set("X-Given-Name", "John")
-		r.Header.Set("X-Family-Name", "Doe")
-
+		setHeaders(r, "123", "mail@mail.com", "John", "Doe")
 		w := httptest.NewRecorder()
 
 		repo := mock.NewMockRepository(ctrl)
@@ -381,4 +397,11 @@ func TestHandlerCreateCompany(t *testing.T) {
 		a.handlerCreateCompany(w, r)
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
+}
+
+func setHeaders(r *http.Request, id, email, givenName, familyName string) {
+	r.Header.Set("X-User", id)
+	r.Header.Set("X-Email", email)
+	r.Header.Set("X-Given-Name", givenName)
+	r.Header.Set("X-Family-Name", familyName)
 }

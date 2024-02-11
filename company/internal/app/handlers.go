@@ -169,6 +169,19 @@ func (a *App) handlerUpdateCompany(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	// check if user has admin role
+	if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleAdmin); err != nil {
+		helper.ErrorResponse(w, http.StatusForbidden, err.Error())
+		return
+	}
+
 	var company model.Company
 	err = json.NewDecoder(r.Body).Decode(&company)
 	if err != nil {
@@ -195,6 +208,19 @@ func (a *App) handlerUpdateLogo(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	// check if user has admin role
+	if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleAdmin); err != nil {
+		helper.ErrorResponse(w, http.StatusForbidden, err.Error())
+		return
+	}
+
 	payload := struct {
 		Logo string `json:"logo"`
 	}{}
@@ -222,6 +248,19 @@ func (a *App) handlerUpdateLocation(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	// check if user has admin role
+	if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleAdmin); err != nil {
+		helper.ErrorResponse(w, http.StatusForbidden, err.Error())
+		return
+	}
+
 	payload := struct {
 		Lat float64 `json:"lat"`
 		Lng float64 `json:"lng"`
@@ -249,6 +288,18 @@ func (a *App) handlerActivateDeactivate(active bool) http.HandlerFunc {
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		claims, err := helper.ExtractClaims(r)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+
+		// check if user has admin role
+		if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleAdmin); err != nil {
+			helper.ErrorResponse(w, http.StatusForbidden, err.Error())
 			return
 		}
 
@@ -312,4 +363,14 @@ func (a *App) handlerGetManagers(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+}
+
+func (a *App) checkRole(ctx context.Context,
+	companyId int64, userId string, expectedRole model.MangerRole) error {
+	// check if user has admin role
+	role, err := a.service.ManagerRole(ctx, companyId, userId)
+	if err != nil || role != expectedRole {
+		return errors.New("forbidden")
+	}
+	return nil
 }
