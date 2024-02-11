@@ -32,11 +32,7 @@ func (a *App) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// write token to response body
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 func (a *App) handlerLogout(w http.ResponseWriter, r *http.Request) {
@@ -77,11 +73,7 @@ func (a *App) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// write token to response body
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
@@ -131,12 +123,7 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// return token
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Encoding token", "err", err)
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 func (a *App) handlerCompanyDetails(w http.ResponseWriter, r *http.Request) {
@@ -156,10 +143,7 @@ func (a *App) handlerCompanyDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// return company
-	if err := json.NewEncoder(w).Encode(company); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, company)
 }
 
 func (a *App) handlerUpdateCompany(w http.ResponseWriter, r *http.Request) {
@@ -359,10 +343,7 @@ func (a *App) handlerGetManagers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// return managers
-	if err := json.NewEncoder(w).Encode(managers); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, managers)
 }
 
 func (a *App) checkRole(ctx context.Context,

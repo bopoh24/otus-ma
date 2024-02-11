@@ -63,6 +63,11 @@ func (a *App) Run(ctx context.Context) error {
 }
 
 func (a *App) Close(ctx context.Context) {
+	if err := a.service.Close(ctx); err != nil {
+		a.log.Error("Error closing service", "err", err)
+	} else {
+		a.log.Info("Service closed")
+	}
 	a.log.Info("App is closing")
 	if err := a.server.Close(); err != nil {
 		a.log.Error("Error closing server", "err", err)

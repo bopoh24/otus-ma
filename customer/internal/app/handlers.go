@@ -31,11 +31,7 @@ func (a *App) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// write token to response body
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 func (a *App) hanlderLogout(w http.ResponseWriter, r *http.Request) {
@@ -76,11 +72,7 @@ func (a *App) handlerRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// write token to response body
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
@@ -130,12 +122,7 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// return token
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(token); err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Encoding token", "err", err)
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, token)
 }
 
 // byID returns a user by id
@@ -194,12 +181,7 @@ func (a *App) handlerProfile(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// write user to response body
-	err = json.NewEncoder(w).Encode(customer)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error encoding user: ", err)
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, customer)
 }
 
 func (a *App) handlerProfileUpdate(w http.ResponseWriter, r *http.Request) {
@@ -241,12 +223,7 @@ func (a *App) handlerProfileUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// write user to response body
-	err = json.NewEncoder(w).Encode(customer)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		a.log.Error("Error encoding user", "err", err)
-		return
-	}
+	helper.JSONResponse(w, http.StatusOK, customer)
 }
 
 func (a *App) handlerRequestPhoneVerification(w http.ResponseWriter, r *http.Request) {
@@ -269,8 +246,7 @@ func (a *App) handlerRequestPhoneVerification(w http.ResponseWriter, r *http.Req
 		a.log.Error("Error requesting phone verification", "err", err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result":"verification code sent"}`))
+	helper.JSONResponse(w, http.StatusOK, map[string]string{"result": "verification code sent"})
 }
 
 func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
@@ -302,6 +278,5 @@ func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
 		a.log.Error("Error verifying phone", "err", err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"result":"phone verified"}`))
+	helper.JSONResponse(w, http.StatusOK, map[string]string{"result": "phone verified"})
 }

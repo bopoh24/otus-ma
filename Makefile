@@ -5,8 +5,8 @@ CUSTOMER_IMAGE_NAME=bopoh24/booksvc-customer:latest
 CUSTOMER_MIGRATE_IMAGE_NAME=bopoh24/booksvc-customer-migrate:latest
 COMPANY_IMAGE_NAME=bopoh24/booksvc-company:latest
 COMPANY_MIGRATE_IMAGE_NAME=bopoh24/booksvc-company-migrate:latest
-
-
+BOOKING_IMAGE_NAME=bopoh24/booksvc-booking:latest
+BOOKING_MIGRATE_IMAGE_NAME=bopoh24/booksvc-booking-migrate:latest
 
 # HELP =================================================================================================================
 # This will output the help for each task
@@ -62,6 +62,26 @@ company_test: ### run tests for company service
 	go test -v ./company/...
 .PHONY:company_test
 
+
+# Booking service =====================================================================================================
+
+booking_service: booking_test ### build booking service docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${BOOKING_IMAGE_NAME} -f ./booking/booking.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${BOOKING_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+
+booking_migrations: ### build booking service migrations docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${BOOKING_MIGRATE_IMAGE_NAME} -f ./booking/booking.migrate.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${BOOKING_MIGRATE_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+
+booking_test: ### run tests for booking service
+	@echo "Testing booking service..."
+	go test -v ./booking/...
 
 # App ==================================================================================================================
 up:
