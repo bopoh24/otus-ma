@@ -95,12 +95,46 @@ func (s *Service) Book(ctx context.Context, offerId int64, customerId string) er
 
 // CompanyOffers returns offers of a company
 func (s *Service) CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error) {
-	return s.repo.CompanyOffers(ctx, companyId, page, limit)
+	services, err := s.Services(ctx)
+	if err != nil {
+		return nil, err
+	}
+	offers, err := s.repo.CompanyOffers(ctx, companyId, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	// add service name to offers
+	for i := range offers {
+		for _, service := range services {
+			if offers[i].ServiceID == service.ID {
+				offers[i].ServiceName = service.Name
+				break
+			}
+		}
+	}
+	return offers, nil
 }
 
 // CustomerOffers returns offers of a customer
 func (s *Service) CustomerOffers(ctx context.Context, customerId string, page, limit int) ([]model.Offer, error) {
-	return s.repo.CustomerOffers(ctx, customerId, page, limit)
+	services, err := s.Services(ctx)
+	if err != nil {
+		return nil, err
+	}
+	offers, err := s.repo.CustomerOffers(ctx, customerId, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	// add service name to offers
+	for i := range offers {
+		for _, service := range services {
+			if offers[i].ServiceID == service.ID {
+				offers[i].ServiceName = service.Name
+				break
+			}
+		}
+	}
+	return offers, nil
 }
 
 // Close closes the Service

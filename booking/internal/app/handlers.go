@@ -43,6 +43,12 @@ func (a *App) handlerAddOffer(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	if offer.ServiceID == 0 || offer.Datetime.IsZero() || offer.Price == 0 ||
+		offer.CompanyID == 0 || offer.CompanyName == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "invalid offer")
+		return
+	}
+
 	err = a.service.OfferAdd(r.Context(), offer)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -198,7 +204,7 @@ func (a *App) handlerSearchOffers(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	offers, err := a.service.OfferSearch(r.Context(), serviceId, from, to, page, limit)
+	offers, err := a.service.OfferSearch(r.Context(), serviceId, from.UTC(), to.UTC(), page, limit)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
@@ -220,6 +226,10 @@ func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 	}
 	err = a.service.Book(r.Context(), id, claims.Id)
 	if err != nil {
+		if errors.Is(err, repository.ErrOfferNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}

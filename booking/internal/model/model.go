@@ -26,6 +26,7 @@ const (
 type Offer struct {
 	ID           int64           `json:"id,omitempty"`
 	ServiceID    int             `json:"service_id"`
+	ServiceName  string          `json:"service_name,omitempty"`
 	Customer     string          `json:"customer"`
 	CompanyID    int64           `json:"company_id"`
 	CompanyName  string          `json:"company_name"`

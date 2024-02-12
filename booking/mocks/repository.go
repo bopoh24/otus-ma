@@ -183,6 +183,20 @@ func (mr *MockRepositoryMockRecorder) OfferSearch(ctx, serviceId, from, to, page
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferSearch", reflect.TypeOf((*MockRepository)(nil).OfferSearch), ctx, serviceId, from, to, page, limit)
 }
 
+// ServiceAdd mocks base method.
+func (m *MockRepository) ServiceAdd(ctx context.Context, service model.Service) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ServiceAdd", ctx, service)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ServiceAdd indicates an expected call of ServiceAdd.
+func (mr *MockRepositoryMockRecorder) ServiceAdd(ctx, service any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ServiceAdd", reflect.TypeOf((*MockRepository)(nil).ServiceAdd), ctx, service)
+}
+
 // Services mocks base method.
 func (m *MockRepository) Services(ctx context.Context) ([]model.Service, error) {
 	m.ctrl.T.Helper()
