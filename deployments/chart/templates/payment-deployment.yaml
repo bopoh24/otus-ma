@@ -1,0 +1,87 @@
+{{- if .Values.paymentService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-payment
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-payment
+spec:
+  {{- if not .Values.paymentService.autoscaling.enabled }}
+  replicas: {{ .Values.paymentService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-payment
+  template:
+    metadata:
+      {{- with .Values.paymentService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-payment
+        date: "{{ now | unixEpoch }}"
+    spec:
+      {{- with .Values.paymentService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.paymentService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: payment
+          securityContext:
+            {{- toYaml .Values.paymentService.securityContext | nindent 12 }}
+          image: "{{ .Values.paymentService.image.repository }}:{{ .Values.paymentService.image.tag }}"
+          imagePullPolicy: {{ .Values.paymentService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.paymentService.resources | nindent 12 }}
+          env:
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+
+            - name: POSTGRES_DB
+              value: payment
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+
+
+      {{- with .Values.paymentService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paymentService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

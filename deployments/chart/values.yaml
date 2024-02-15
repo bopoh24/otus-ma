@@ -44,7 +44,7 @@ bookingService:
   autoscaling: {}
 
 paymentService:
-  enabled: false
+  enabled: true
   replicaCount: 1
   image:
     repository: bopoh24/booksvc-payment

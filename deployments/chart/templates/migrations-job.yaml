@@ -77,3 +77,26 @@ spec:
                   key: dbPassword
           command: [ "migrate", "-verbose", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up" ]
           {{- end }}
+        {{- if .Values.paymentService.enabled }}
+        - name: payment-migrate-container
+          image: bopoh24/booksvc-payment-migrate:latest
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+            - name: POSTGRES_DB
+              value: payment
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+          command: [ "migrate", "-verbose", "-path", "/migrations", "-database", "postgresql://$(POSTRGES_USER):$(POSTRGES_PASSWORD)@$(POSTGRES_HOST):5432/$(POSTGRES_DB)?sslmode=disable", "up" ]
+          {{- end }}

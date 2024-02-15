@@ -7,6 +7,8 @@ COMPANY_IMAGE_NAME=bopoh24/booksvc-company:latest
 COMPANY_MIGRATE_IMAGE_NAME=bopoh24/booksvc-company-migrate:latest
 BOOKING_IMAGE_NAME=bopoh24/booksvc-booking:latest
 BOOKING_MIGRATE_IMAGE_NAME=bopoh24/booksvc-booking-migrate:latest
+PAYMENT_IMAGE_NAME=bopoh24/booksvc-payment:latest
+PAYMENT_MIGRATE_IMAGE_NAME=bopoh24/booksvc-payment-migrate:latest
 
 # HELP =================================================================================================================
 # This will output the help for each task
@@ -71,6 +73,7 @@ booking_service: booking_test ### build booking service docker image
 	@echo "Image built successfully!"
 	docker push ${BOOKING_IMAGE_NAME}
 	@echo "Image pushed successfully!"
+.PHONY:booking_service
 
 booking_migrations: ### build booking service migrations docker image
 	@echo "Building image..."
@@ -78,10 +81,35 @@ booking_migrations: ### build booking service migrations docker image
 	@echo "Image built successfully!"
 	docker push ${BOOKING_MIGRATE_IMAGE_NAME}
 	@echo "Image pushed successfully!"
+.PHONY:booking_migrations
 
 booking_test: ### run tests for booking service
 	@echo "Testing booking service..."
 	go test -v ./booking/...
+.PHONY:booking_test
+
+
+# Payment service =====================================================================================================
+
+payment_service: payment_test ### build payment service docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${PAYMENT_IMAGE_NAME} -f ./payment/payment.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${PAYMENT_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:payment_service
+
+payment_migrations: ### build payment service migrations docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${PAYMENT_MIGRATE_IMAGE_NAME} -f ./payment/payment.migrate.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${PAYMENT_MIGRATE_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+
+payment_test: ### run tests for payment service
+	@echo "Testing payment service..."
+	go test -v ./payment/...
+
 
 # App ==================================================================================================================
 up:
