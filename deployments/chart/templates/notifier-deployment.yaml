@@ -49,60 +49,16 @@ spec:
           resources:
             {{- toYaml .Values.notifierService.resources | nindent 12 }}
           env:
-
-            - name: POSTGRES_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: dbHost
-
-            - name: POSTGRES_DB
-              value: notifier
-
-            - name: POSTRGES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: dbUsername
-
-            - name: POSTRGES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: dbPassword
-
-            - name: KEYCLOAK_URL
-              value: http://{{.Release.Name}}-keycloak.{{.Release.Namespace}}.svc.cluster.local
-
-            - name: KEYCLOAK_REALM
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: keycloaknotifierRealm
-
-            - name: KEYCLOAK_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: keycloaknotifierClientId
-
-            - name: KEYCLOAK_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: keycloaknotifierClientSecret
-
-            - name: KEYCLOAK_ADMIN
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: keycloakAdminUser
-
-            - name: KEYCLOAK_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: secret
-                  key: keycloakAdminPassword
+            - name: SMTP_HOST
+              value: {{ .Values.notifierService.smtp.host }}
+            - name: SMTP_PORT
+              value: {{ .Values.notifierService.smtp.port }}
+            - name: SMTP_USERNAME
+              value: {{ .Values.notifierService.smtp.user }}
+            - name: SMTP_PASSWORD
+              value: {{ .Values.notifierService.smtp.password }}
+            - name: SMTP_FROM
+              value: {{ .Values.notifierService.smtp.from }}
 
       {{- with .Values.notifierService.nodeSelector }}
       nodeSelector:

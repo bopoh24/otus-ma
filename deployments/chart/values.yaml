@@ -58,6 +58,14 @@ paymentService:
 notifierService:
   enabled: true
   replicaCount: 1
+
+  smtp:
+    host: booksvc-mailhog.booksvc.svc.cluster.local
+    port: 1025
+    user: ""
+    password: ""
+    from: "no-reply@booksvc.com"
+
   image:
     repository: bopoh24/booksvc-notifier
     pullPolicy: Always
