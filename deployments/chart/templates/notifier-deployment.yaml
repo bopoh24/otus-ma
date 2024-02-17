@@ -52,7 +52,7 @@ spec:
             - name: SMTP_HOST
               value: {{ .Values.notifierService.smtp.host }}
             - name: SMTP_PORT
-              value: {{ .Values.notifierService.smtp.port }}
+              value: {{ .Values.notifierService.smtp.port | quote }}
             - name: SMTP_USERNAME
               value: {{ .Values.notifierService.smtp.user }}
             - name: SMTP_PASSWORD
