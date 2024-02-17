@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/bopoh24/ma_1/payment/internal/config"
 )
 
 //go:generate mockgen -source service.go -destination ../../mocks/repository.go -package mock Repository
@@ -17,7 +16,6 @@ type Repository interface {
 
 type Service struct {
 	repo Repository
-	conf *config.Config
 }
 
 // New returns a new Service instance

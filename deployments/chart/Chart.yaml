@@ -38,7 +38,13 @@ dependencies:
     version: 0.1.27
     condition: krakend.enabled
 
+  - name: mailhog
+    version: 5.2.3
+    repository: https://codecentric.github.io/helm-charts
+    condition: mailhog.enabled
+
   - name: kube-prometheus-stack
     version: 51.4.0
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
+

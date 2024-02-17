@@ -280,7 +280,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "oidc.ciba.grant.enabled": "false",
-        "client.secret.creation.time": "1706552483",
+        "client.secret.creation.time": "1706804917",
         "backchannel.logout.session.required": "true",
         "post.logout.redirect.uris": "+",
         "display.on.consent.screen": "false",
@@ -921,7 +921,18 @@
     "xXSSProtection": "1; mode=block",
     "strictTransportSecurity": "max-age=31536000; includeSubDomains"
   },
-  "smtpServer": {},
+  "smtpServer": {
+    "replyToDisplayName": "",
+    "starttls": "false",
+    "auth": "",
+    "port": "1025",
+    "host": "booksvc-mailhog.booksvc.svc.cluster.local",
+    "replyTo": "",
+    "from": "no-reply@booksvc.com",
+    "fromDisplayName": "BOOKSVC",
+    "envelopeFrom": "",
+    "ssl": "false"
+  },
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"
@@ -968,14 +979,14 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-usermodel-property-mapper",
-            "saml-user-attribute-mapper",
+            "saml-user-property-mapper",
             "oidc-full-name-mapper",
-            "saml-role-list-mapper",
             "oidc-usermodel-attribute-mapper",
             "oidc-sha256-pairwise-sub-mapper",
-            "oidc-address-mapper",
-            "saml-user-property-mapper"
+            "saml-role-list-mapper",
+            "oidc-usermodel-property-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-address-mapper"
           ]
         }
       },
@@ -987,13 +998,13 @@
         "subComponents": {},
         "config": {
           "allowed-protocol-mapper-types": [
-            "oidc-full-name-mapper",
             "saml-role-list-mapper",
+            "oidc-full-name-mapper",
             "oidc-usermodel-property-mapper",
-            "oidc-usermodel-attribute-mapper",
-            "saml-user-attribute-mapper",
-            "oidc-sha256-pairwise-sub-mapper",
             "saml-user-property-mapper",
+            "saml-user-attribute-mapper",
+            "oidc-usermodel-attribute-mapper",
+            "oidc-sha256-pairwise-sub-mapper",
             "oidc-address-mapper"
           ]
         }

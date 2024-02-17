@@ -7,7 +7,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/bopoh24/ma_1/booking/internal/config"
-	"github.com/bopoh24/ma_1/booking/internal/model"
+	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/sql/builder"
 	_ "github.com/lib/pq"
 	"time"
@@ -80,7 +80,7 @@ func (r *Repository) OfferDelete(ctx context.Context, id int64, companyId int64)
 }
 
 // OfferChangeStatus changes the status of an offer
-func (r *Repository) OfferChangeStatus(ctx context.Context, id int64, status model.OrderStatus) error {
+func (r *Repository) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
 	q := r.psql.Builder().Update("offer").
 		Set("status", status).
 		Set("updated_at", sq.Expr("NOW()")).
@@ -95,7 +95,7 @@ func (r *Repository) OfferChangeStatus(ctx context.Context, id int64, status mod
 // OfferCancelByCompany cancels an offer by company
 func (r *Repository) OfferCancelByCompany(ctx context.Context, id int64, reason string, companyId int64, managerId string) error {
 	q := r.psql.Builder().Update("offer").
-		Set("status", model.OrderStatusCanceledByCompany).
+		Set("status", model.OfferStatusCanceledByCompany).
 		Set("cancel_reason", reason).
 		Set("updated_by", managerId).
 		Set("updated_at", sq.Expr("NOW()")).
@@ -110,7 +110,7 @@ func (r *Repository) OfferCancelByCompany(ctx context.Context, id int64, reason 
 // OfferCancelByCustomer cancels an offer by customer
 func (r *Repository) OfferCancelByCustomer(ctx context.Context, id int64, reason string, customerId string) error {
 	q := r.psql.Builder().Update("offer").
-		Set("status", model.OrderStatusCanceledByCustomer).
+		Set("status", model.OfferStatusCanceledByCustomer).
 		Set("cancel_reason", reason).
 		Set("updated_by", customerId).
 		Set("updated_at", sq.Expr("NOW()")).
@@ -128,7 +128,7 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 		"datetime", "description", "price", "status").
 		From("offer").
 		Where(
-			sq.Eq{"status": model.OrderStatusOpen},
+			sq.Eq{"status": model.OfferStatusOpen},
 			sq.Eq{"service_id": serviceId},
 			sq.GtOrEq{"datetime": from},
 			sq.LtOrEq{"datetime": to}).
@@ -153,10 +153,10 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 // Book books an offer
 func (r *Repository) Book(ctx context.Context, offerId int64, customerId string) error {
 	q := r.psql.Builder().Update("offer").
-		Set("status", model.OrderStatusReserved).
+		Set("status", model.OfferStatusReserved).
 		Set("customer", customerId).
 		Set("updated_at", sq.Expr("NOW()")).
-		Where(sq.Eq{"id": offerId}, sq.Eq{"status": model.OrderStatusOpen})
+		Where(sq.Eq{"id": offerId}, sq.Eq{"status": model.OfferStatusOpen})
 	_, err := q.ExecContext(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrOfferNotFound

@@ -13,7 +13,7 @@ import (
 	reflect "reflect"
 	time "time"
 
-	model "github.com/bopoh24/ma_1/booking/internal/model"
+	model "github.com/bopoh24/ma_1/booking/pkg/model"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -141,7 +141,7 @@ func (mr *MockRepositoryMockRecorder) OfferCancelByCustomer(ctx, id, reason, cus
 }
 
 // OfferChangeStatus mocks base method.
-func (m *MockRepository) OfferChangeStatus(ctx context.Context, id int64, status model.OrderStatus) error {
+func (m *MockRepository) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OfferChangeStatus", ctx, id, status)
 	ret0, _ := ret[0].(error)

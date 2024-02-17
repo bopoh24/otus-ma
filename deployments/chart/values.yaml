@@ -55,11 +55,11 @@ paymentService:
     port: 80
   autoscaling: {}
 
-notificationService:
-  enabled: false
+notifierService:
+  enabled: true
   replicaCount: 1
   image:
-    repository: bopoh24/booksvc-notification
+    repository: bopoh24/booksvc-notifier
     pullPolicy: Always
     tag: latest
   service:
@@ -182,6 +182,17 @@ krakend:
           paths:
           - path: /
             pathType: ImplementationSpecific
+
+mailhog:
+    enabled: true
+    ingress:
+        enabled: true
+        ingressClassName: nginx
+        hosts:
+          - host: mailhog.booksvc.com
+            paths:
+              - path: "/"
+                pathType: Prefix
 
 kube-prometheus-stack:
   enabled: false

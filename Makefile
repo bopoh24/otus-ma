@@ -9,6 +9,8 @@ BOOKING_IMAGE_NAME=bopoh24/booksvc-booking:latest
 BOOKING_MIGRATE_IMAGE_NAME=bopoh24/booksvc-booking-migrate:latest
 PAYMENT_IMAGE_NAME=bopoh24/booksvc-payment:latest
 PAYMENT_MIGRATE_IMAGE_NAME=bopoh24/booksvc-payment-migrate:latest
+NOTIFIER_IMAGE_NAME=bopoh24/booksvc-notifier:latest
+
 
 # HELP =================================================================================================================
 # This will output the help for each task
@@ -109,6 +111,22 @@ payment_migrations: ### build payment service migrations docker image
 payment_test: ### run tests for payment service
 	@echo "Testing payment service..."
 	go test -v ./payment/...
+
+
+
+# Notifier service =====================================================================================================
+notifier_service: notifier_test ### build notifier service docker image
+	@echo "Building image..."
+	docker build --platform linux/amd64 -t ${NOTIFIER_IMAGE_NAME} -f ./notifier/notifier.dockerfile .
+	@echo "Image built successfully!"
+	docker push ${NOTIFIER_IMAGE_NAME}
+	@echo "Image pushed successfully!"
+.PHONY:notifier_service
+
+notifier_test: ### run tests for notifier service
+	@echo "Testing notifier service..."
+	go test -v ./notifier/...
+
 
 
 # App ==================================================================================================================

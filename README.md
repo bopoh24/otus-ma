@@ -54,6 +54,11 @@
     helm repo add equinixmetal https://helm.equinixmetal.com
     helm repo update
 
+### MailHog
+
+    helm repo add codecentric https://codecentric.github.io/helm-charts
+    helm repo update
+
 ### Prometheus и Grafana
 
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts

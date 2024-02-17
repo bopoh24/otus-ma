@@ -11,6 +11,7 @@ require (
 	github.com/prometheus/client_golang v1.17.0
 	github.com/stretchr/testify v1.8.2
 	github.com/twilio/twilio-go v1.17.0
+	github.com/xhit/go-simple-mail/v2 v2.16.0
 	go.uber.org/mock v0.4.0
 )
 
@@ -20,6 +21,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
+	github.com/go-test/deep v1.1.0 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -34,6 +36,7 @@ require (
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
+	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect

@@ -2,8 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/bopoh24/ma_1/booking/internal/config"
-	"github.com/bopoh24/ma_1/booking/internal/model"
+	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"time"
 )
 
@@ -13,7 +12,7 @@ type Repository interface {
 	ServiceAdd(ctx context.Context, service model.Service) error
 	OfferAdd(ctx context.Context, offer model.Offer) error
 	OfferDelete(ctx context.Context, id int64, companyId int64) error
-	OfferChangeStatus(ctx context.Context, id int64, status model.OrderStatus) error
+	OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error
 	OfferCancelByCompany(ctx context.Context, id int64, reason string, companyId int64, managerId string) error
 	OfferCancelByCustomer(ctx context.Context, id int64, reason string, customerId string) error
 
@@ -29,7 +28,6 @@ type Repository interface {
 
 type Service struct {
 	repo     Repository
-	conf     *config.Config
 	services []model.Service
 }
 
@@ -68,7 +66,7 @@ func (s *Service) OfferDelete(ctx context.Context, id int64, companyId int64) er
 }
 
 // OfferChangeStatus changes the status of an offer
-func (s *Service) OfferChangeStatus(ctx context.Context, id int64, status model.OrderStatus) error {
+func (s *Service) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
 	return s.repo.OfferChangeStatus(ctx, id, status)
 }
 

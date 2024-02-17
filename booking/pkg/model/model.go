@@ -11,16 +11,17 @@ type Service struct {
 	Name     string `json:"name"`
 }
 
-type OrderStatus string
+type OfferStatus string
 
 const (
-	OrderStatusOpen               OrderStatus = "open"
-	OrderStatusReserved           OrderStatus = "reserved"
-	OrderStatusPaid               OrderStatus = "paid"
-	OrderStatusSubmitted          OrderStatus = "submitted"
-	OrderStatusCanceledByCustomer OrderStatus = "canceled_by_customer"
-	OrderStatusCanceledByCompany  OrderStatus = "canceled_by_company"
-	OrderStatusCompleted          OrderStatus = "completed"
+	OfferStatusOpen               OfferStatus = "open"
+	OfferStatusFailed             OfferStatus = "failed"
+	OfferStatusReserved           OfferStatus = "reserved"
+	OfferStatusPaid               OfferStatus = "paid"
+	OfferStatusSubmitted          OfferStatus = "submitted"
+	OfferStatusCanceledByCompany  OfferStatus = "canceled_by_company"
+	OfferStatusCanceledByCustomer OfferStatus = "canceled_by_customer"
+	OfferStatusCompleted          OfferStatus = "completed"
 )
 
 type Offer struct {
@@ -34,7 +35,7 @@ type Offer struct {
 	Datetime     time.Time       `json:"datetime"`
 	Description  string          `json:"description"`
 	Price        float64         `json:"price"`
-	Status       OrderStatus     `json:"status"`
+	Status       OfferStatus     `json:"status"`
 	CancelReason string          `json:"cancel_reason,omitempty"`
 	CreatedBy    string          `json:"created_by,omitempty"`
 	UpdatedBy    string          `json:"updated_by,omitempty"`

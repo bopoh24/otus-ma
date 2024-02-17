@@ -3,8 +3,8 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"github.com/bopoh24/ma_1/booking/internal/model"
 	"github.com/bopoh24/ma_1/booking/internal/repository"
+	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -91,7 +91,7 @@ func (a *App) handlerChangeOfferStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	payload := struct {
-		Status model.OrderStatus `json:"status"`
+		Status model.OfferStatus `json:"status"`
 	}{}
 	if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())

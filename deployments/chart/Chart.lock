@@ -8,8 +8,11 @@ dependencies:
 - name: krakend
   repository: https://helm.equinixmetal.com
   version: v0.1.27
+- name: mailhog
+  repository: https://codecentric.github.io/helm-charts
+  version: 5.2.3
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 51.4.0
-digest: sha256:8e8d094639231dd3cd956943b47e1cf21f146e48bd3c10a73c09d17d86e1c07d
-generated: "2024-01-25T23:33:28.962422+02:00"
+digest: sha256:d0eaee467b10819abc1c1cf7999a1249e2d8eec21e8a91035b0a856758294c17
+generated: "2024-02-15T17:33:08.893927+02:00"

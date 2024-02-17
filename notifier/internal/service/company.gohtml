@@ -1,0 +1,27 @@
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>BOOKSVC</title>
+    </head>
+    <body>
+        <h1>BOOKSVC</h1>
+        {{if eq .Offer.Status "failed"}}
+            <h3>Booking is {{.Status}}</h3>
+        {{else}}
+            <h3>#{{.Offer.ID}} Booking is {{.Status}}</h3>
+        {{end}}
+        {{if .Offer.CancelReason}}
+            <p>Cancel reason: {{.Offer.CancelReason}}</p>
+        {{end}}
+        <h5>{{.Offer.ServiceName}}</h5>
+        <p>Datetime: {{.Offer.Datetime.Format "2006.01.02 15:04"}}</p>
+        <p>Price: {{.Offer.Price}}</p>
+        <hr/>
+        <h6>Customer contacts</h6>
+        <p>Name: {{.CustomerContacts.FirstName}} {{.CustomerContacts.LastName}}</p>
+        <p>Phone: {{.CustomerContacts.Phone}}</p>
+        <p>Email: {{.CustomerContacts.Email}}</p>
+        <hr/>
+        <p>Thank you for using BOOKSVC</p>
+    </body>
+</html>

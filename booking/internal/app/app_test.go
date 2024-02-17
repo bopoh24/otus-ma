@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/bopoh24/ma_1/booking/internal/model"
 	"github.com/bopoh24/ma_1/booking/internal/repository"
 	"github.com/bopoh24/ma_1/booking/internal/service"
 	mock "github.com/bopoh24/ma_1/booking/mocks"
+	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
@@ -196,8 +196,8 @@ func TestHandlerChangeOfferStatus(t *testing.T) {
 	a := createMockApp(repo)
 
 	payload := struct {
-		Status model.OrderStatus `json:"status"`
-	}{Status: model.OrderStatus("test")}
+		Status model.OfferStatus `json:"status"`
+	}{Status: model.OfferStatus("test")}
 
 	reqBody, err := json.Marshal(payload)
 	assert.NoError(t, err)
@@ -218,7 +218,7 @@ func TestHandlerChangeOfferStatus(t *testing.T) {
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 		rctx.URLParams.Add("id", "1")
 		w := httptest.NewRecorder()
-		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OrderStatus("test")).Return(repository.ErrOfferNotFound).Times(1)
+		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OfferStatus("test")).Return(repository.ErrOfferNotFound).Times(1)
 		a.handlerChangeOfferStatus(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -229,7 +229,7 @@ func TestHandlerChangeOfferStatus(t *testing.T) {
 		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 		rctx.URLParams.Add("id", "1")
 		w := httptest.NewRecorder()
-		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OrderStatus("test")).Return(nil).Times(1)
+		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OfferStatus("test")).Return(nil).Times(1)
 		a.handlerChangeOfferStatus(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
 	})

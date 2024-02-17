@@ -6,9 +6,9 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}-company
 spec:
-  type: {{ .Values.customerService.service.type }}
+  type: {{ .Values.companyService.service.type }}
   ports:
-    - port: {{ .Values.customerService.service.port }}
+    - port: {{ .Values.companyService.service.port }}
       targetPort: 80
       protocol: TCP
       name: http

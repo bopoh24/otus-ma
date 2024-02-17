@@ -1,0 +1,119 @@
+{{- if .Values.notifierService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-notifier
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-notifier
+spec:
+  {{- if not .Values.notifierService.autoscaling.enabled }}
+  replicas: {{ .Values.notifierService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-notifier
+  template:
+    metadata:
+      {{- with .Values.notifierService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-notifier
+        date: "{{ now | unixEpoch }}"
+    spec:
+      {{- with .Values.notifierService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.notifierService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: notifier
+          securityContext:
+            {{- toYaml .Values.notifierService.securityContext | nindent 12 }}
+          image: "{{ .Values.notifierService.image.repository }}:{{ .Values.notifierService.image.tag }}"
+          imagePullPolicy: {{ .Values.notifierService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.notifierService.resources | nindent 12 }}
+          env:
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+
+            - name: POSTGRES_DB
+              value: notifier
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+
+            - name: KEYCLOAK_URL
+              value: http://{{.Release.Name}}-keycloak.{{.Release.Namespace}}.svc.cluster.local
+
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloaknotifierRealm
+
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloaknotifierClientId
+
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloaknotifierClientSecret
+
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminUser
+
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminPassword
+
+      {{- with .Values.notifierService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.notifierService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.notifierService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

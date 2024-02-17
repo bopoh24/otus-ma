@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"github.com/bopoh24/ma_1/company/internal/config"
 	"github.com/bopoh24/ma_1/company/internal/model"
 )
 
@@ -30,7 +29,6 @@ type Repository interface {
 
 type Service struct {
 	repo Repository
-	conf *config.Config
 }
 
 // New returns a new Service instance
