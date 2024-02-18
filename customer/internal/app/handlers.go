@@ -96,11 +96,12 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = a.keycloakClient.CreateUser(context.Background(), token.AccessToken, a.conf.Keycloak.Realm, gocloak.User{
-		Email:     gocloak.StringP(payload.Email),
-		FirstName: gocloak.StringP(payload.FirstName),
-		LastName:  gocloak.StringP(payload.LastName),
-		Enabled:   gocloak.BoolP(true),
-		Username:  gocloak.StringP(payload.Email),
+		Email:         gocloak.StringP(payload.Email),
+		EmailVerified: gocloak.BoolP(true),
+		FirstName:     gocloak.StringP(payload.FirstName),
+		LastName:      gocloak.StringP(payload.LastName),
+		Enabled:       gocloak.BoolP(true),
+		Username:      gocloak.StringP(payload.Email),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
 				Temporary: gocloak.BoolP(false),

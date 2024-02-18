@@ -29,10 +29,10 @@ func New(dbConf config.Postgres) (*Repository, error) {
 }
 
 // CompanyCreate creates a new company profile
-func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) error {
+func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) (int64, error) {
 	tx, err := r.psql.Tx(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer func() {
 		if err != nil {
@@ -51,7 +51,7 @@ func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName
 	var companyId int64
 	err = row.Scan(&companyId)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	manager := model.Manager{
@@ -65,7 +65,7 @@ func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName
 		Columns("company_id", "user_id", "email", "first_name", "last_name", "role", "active").
 		Values(manager.CompanyID, manager.UserID, manager.Email, firstName, lastName, manager.Role, manager.Active)
 	_, err = q.ExecContext(ctx)
-	return err
+	return companyId, err
 }
 
 // CompanyUpdate updates a company profile
@@ -86,13 +86,13 @@ func (r *Repository) CompanyUpdate(ctx context.Context, company model.Company) e
 // CompanyByID returns a company profile by its ID
 func (r *Repository) CompanyByID(ctx context.Context, id int64) (model.Company, error) {
 	q := r.psql.Builder().Select("id", "logo", "name", "description", "address",
-		"phone", "active", "created_at", "updated_at").
+		"phone", "email", "active", "created_at", "updated_at").
 		From("company").
 		Where(sq.Eq{"id": id})
 	row := q.QueryRowContext(ctx)
 	var company model.Company
 	err := row.Scan(&company.ID, &company.Logo, &company.Name, &company.Description, &company.Address,
-		&company.Phone, &company.Active, &company.Created, &company.Updated)
+		&company.Phone, &company.Email, &company.Active, &company.Created, &company.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return company, ErrCompanyNotFound
@@ -258,6 +258,34 @@ func (r *Repository) ManagerRole(ctx context.Context, companyId int64, userId st
 		return "", err
 	}
 	return role, nil
+}
+
+func (r *Repository) MyCompanies(ctx context.Context, userId string) ([]model.Company, error) {
+	q := r.psql.Builder().Select("c.id", "c.logo", "c.name", "c.description", "c.address",
+		"c.phone", "c.email", "c.active", "c.created_at", "c.updated_at").
+		From("company c").
+		Join("company_manager m ON c.id = m.company_id").
+		Where(sq.Eq{"m.user_id": userId})
+
+	companies := make([]model.Company, 0)
+	rows, err := q.QueryContext(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return companies, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var company model.Company
+		err = rows.Scan(&company.ID, &company.Logo, &company.Name, &company.Description, &company.Address,
+			&company.Phone, &company.Email, &company.Active, &company.Created, &company.Updated)
+		if err != nil {
+			return nil, err
+		}
+		companies = append(companies, company)
+	}
+	return companies, nil
 }
 
 // Close closes the database connection

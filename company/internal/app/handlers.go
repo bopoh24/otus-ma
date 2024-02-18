@@ -97,11 +97,12 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = a.keycloakClient.CreateUser(context.Background(), token.AccessToken, a.conf.Keycloak.Realm, gocloak.User{
-		Email:     gocloak.StringP(payload.Email),
-		FirstName: gocloak.StringP(payload.FirstName),
-		LastName:  gocloak.StringP(payload.LastName),
-		Enabled:   gocloak.BoolP(true),
-		Username:  gocloak.StringP(payload.Email),
+		Email:         gocloak.StringP(payload.Email),
+		EmailVerified: gocloak.BoolP(true),
+		FirstName:     gocloak.StringP(payload.FirstName),
+		LastName:      gocloak.StringP(payload.LastName),
+		Enabled:       gocloak.BoolP(true),
+		Username:      gocloak.StringP(payload.Email),
 		Credentials: &[]gocloak.CredentialRepresentation{
 			{
 				Temporary: gocloak.BoolP(false),
@@ -172,6 +173,12 @@ func (a *App) handlerUpdateCompany(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	if err = a.validateCompany(company); err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	company.ID = id
 	err = a.service.UpdateCompany(r.Context(), company)
 	if err != nil {
@@ -313,17 +320,33 @@ func (a *App) handlerCreateCompany(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if company.Name == "" {
-		helper.ErrorResponse(w, http.StatusBadRequest, "company name is required")
+
+	if err = a.validateCompany(company); err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = a.service.CreateCompany(r.Context(), claims.Id, claims.Email, claims.FirstName, claims.LastName, company)
+	companyId, err := a.service.CreateCompany(r.Context(), claims.Id, claims.Email, claims.FirstName, claims.LastName, company)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
+	helper.JSONResponse(w, http.StatusCreated, map[string]int64{"id": companyId})
+}
+
+func (a *App) handlerMyCompanies(w http.ResponseWriter, r *http.Request) {
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	companies, err := a.service.MyCompanies(r.Context(), claims.Id)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	// return companies
+	helper.JSONResponse(w, http.StatusOK, companies)
 }
 
 func (a *App) handlerGetManagers(w http.ResponseWriter, r *http.Request) {
@@ -352,6 +375,19 @@ func (a *App) checkRole(ctx context.Context,
 	role, err := a.service.ManagerRole(ctx, companyId, userId)
 	if err != nil || role != expectedRole {
 		return errors.New("forbidden")
+	}
+	return nil
+}
+
+func (a *App) validateCompany(company model.Company) error {
+	if company.Name == "" {
+		return errors.New("company name is required")
+	}
+	if company.Address == "" {
+		return errors.New("company address is required")
+	}
+	if company.Phone == "" {
+		return errors.New("company phone is required")
 	}
 	return nil
 }

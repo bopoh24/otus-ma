@@ -44,6 +44,7 @@ func (a *App) Run(ctx context.Context) error {
 		r.Post("/register", a.handlerRegister)
 		r.Post("/refresh", a.handlerRefresh)
 
+		r.Get("/my", a.handlerMyCompanies)
 		r.Get("/{id}", a.handlerCompanyDetails)
 		r.Put("/{id}", a.handlerUpdateCompany)
 		r.Post("/{id}/logo", a.handlerUpdateLogo)

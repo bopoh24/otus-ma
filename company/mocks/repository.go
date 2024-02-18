@@ -83,11 +83,12 @@ func (mr *MockRepositoryMockRecorder) CompanyByID(ctx, id any) *gomock.Call {
 }
 
 // CompanyCreate mocks base method.
-func (m *MockRepository) CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) error {
+func (m *MockRepository) CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CompanyCreate", ctx, userId, email, firstName, lastName, company)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CompanyCreate indicates an expected call of CompanyCreate.
@@ -267,4 +268,19 @@ func (m *MockRepository) ManagerSetRole(ctx context.Context, id int64, role mode
 func (mr *MockRepositoryMockRecorder) ManagerSetRole(ctx, id, role any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ManagerSetRole", reflect.TypeOf((*MockRepository)(nil).ManagerSetRole), ctx, id, role)
+}
+
+// MyCompanies mocks base method.
+func (m *MockRepository) MyCompanies(ctx context.Context, userId string) ([]model.Company, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MyCompanies", ctx, userId)
+	ret0, _ := ret[0].([]model.Company)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MyCompanies indicates an expected call of MyCompanies.
+func (mr *MockRepositoryMockRecorder) MyCompanies(ctx, userId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MyCompanies", reflect.TypeOf((*MockRepository)(nil).MyCompanies), ctx, userId)
 }

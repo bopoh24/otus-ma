@@ -7,12 +7,13 @@ import (
 
 //go:generate mockgen -source service.go -destination ../../mocks/repository.go -package mock Repository
 type Repository interface {
-	CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) error
+	CompanyCreate(ctx context.Context, userId, email, firstName, lastName string, company model.Company) (int64, error)
 	CompanyUpdate(ctx context.Context, company model.Company) error
 	CompanyByID(ctx context.Context, id int64) (model.Company, error)
 	CompanyActivateDeactivate(ctx context.Context, id int64, active bool) error
 	CompanyUpdateLocation(ctx context.Context, id int64, lat float64, lng float64) error
 	CompanyUpdateLogo(ctx context.Context, id int64, logo string) error
+	MyCompanies(ctx context.Context, userId string) ([]model.Company, error)
 
 	CompanyManagers(ctx context.Context, companyID int64) ([]model.Manager, error)
 	ManagerByID(ctx context.Context, id int64) (model.Manager, error)
@@ -44,7 +45,7 @@ func (s *Service) CompanyByID(ctx context.Context, id int64) (model.Company, err
 }
 
 // CreateCompany creates a new company profile
-func (s *Service) CreateCompany(ctx context.Context, userId, email, firstName, lastName string, company model.Company) error {
+func (s *Service) CreateCompany(ctx context.Context, userId, email, firstName, lastName string, company model.Company) (int64, error) {
 	return s.repo.CompanyCreate(ctx, userId, email, firstName, lastName, company)
 }
 
@@ -66,6 +67,10 @@ func (s *Service) UpdateCompanyLogo(ctx context.Context, id int64, logo string) 
 // ActivateDeactivateCompany activates or deactivates a company
 func (s *Service) ActivateDeactivateCompany(ctx context.Context, id int64, active bool) error {
 	return s.repo.CompanyActivateDeactivate(ctx, id, active)
+}
+
+func (s *Service) MyCompanies(ctx context.Context, userId string) ([]model.Company, error) {
+	return s.repo.MyCompanies(ctx, userId)
 }
 
 func (s *Service) CompanyManagers(ctx context.Context, companyID int64) ([]model.Manager, error) {

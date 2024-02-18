@@ -83,8 +83,10 @@ func TestHandlerUpdateCompany(t *testing.T) {
 
 	t.Run("Not found", func(t *testing.T) {
 		body := model.Company{
-			ID:   22,
-			Name: "Company",
+			ID:      22,
+			Name:    "Company",
+			Address: "Some city, some street",
+			Phone:   "+74951234567",
 		}
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
@@ -106,8 +108,10 @@ func TestHandlerUpdateCompany(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		body := model.Company{
-			ID:   22,
-			Name: "Company",
+			ID:      22,
+			Name:    "Company",
+			Address: "Some city, some street",
+			Phone:   "+74951234567",
 		}
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
@@ -383,7 +387,9 @@ func TestHandlerCreateCompany(t *testing.T) {
 
 	t.Run("OK", func(t *testing.T) {
 		body := model.Company{
-			Name: "Company",
+			Name:    "Company",
+			Address: "Some city, some street",
+			Phone:   "+74951234567",
 		}
 		reqBody, err := json.Marshal(body)
 		assert.NoError(t, err)
@@ -393,9 +399,10 @@ func TestHandlerCreateCompany(t *testing.T) {
 
 		repo := mock.NewMockRepository(ctrl)
 		a := createMockApp(repo)
-		repo.EXPECT().CompanyCreate(gomock.Any(), "123", "mail@mail.com", "John", "Doe", body).Return(nil).Times(1)
+		repo.EXPECT().CompanyCreate(gomock.Any(), "123", "mail@mail.com", "John", "Doe", body).Return(int64(123), nil).Times(1)
 		a.handlerCreateCompany(w, r)
 		assert.Equal(t, http.StatusCreated, w.Code)
+		assert.Contains(t, w.Body.String(), "123")
 	})
 }
 
