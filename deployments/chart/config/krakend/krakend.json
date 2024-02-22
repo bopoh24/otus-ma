@@ -885,6 +885,10 @@
       "input_headers": [
         "*"
       ],
+      "input_query_strings":
+      [
+        "*"
+      ],
       "extra_config": {
         "auth/validator": {
           "alg": "RS256",
@@ -942,6 +946,114 @@
           "method": "GET",
           "host": [
             "http://booksvc-booking.booksvc.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/customer/offers",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
+      "input_query_strings":
+      [
+        "*"
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_url": "http://booksvc-keycloak.booksvc.svc.cluster.local/realms/customer/protocol/openid-connect/certs",
+          "cache": true,
+          "disable_jwk_security": true,
+          "operation_debug": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "x-user"
+            ],
+            [
+              "email",
+              "x-email"
+            ],
+            [
+              "given_name",
+              "x-given-name"
+            ],
+            [
+              "family_name",
+              "x-family-name"
+            ]
+          ]
+        }
+      },
+      "backend": [
+        {
+          "url_pattern": "/customer/offers",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://booksvc-customer.booksvc.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/customer/offer/{id}/book",
+      "method": "POST",
+      "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_url": "http://booksvc-keycloak.booksvc.svc.cluster.local/realms/customer/protocol/openid-connect/certs",
+          "cache": true,
+          "disable_jwk_security": true,
+          "operation_debug": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "x-user"
+            ],
+            [
+              "email",
+              "x-email"
+            ],
+            [
+              "given_name",
+              "x-given-name"
+            ],
+            [
+              "family_name",
+              "x-family-name"
+            ]
+          ]
+        }
+      },
+      "backend": [
+        {
+          "url_pattern": "/customer/offer/{id}/book",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "POST",
+          "host": [
+            "http://booksvc-customer.booksvc.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {

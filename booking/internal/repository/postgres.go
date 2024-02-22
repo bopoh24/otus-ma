@@ -132,10 +132,12 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 		"datetime", "description", "price", "status").
 		From("offer").
 		Where(
-			sq.Eq{"status": model.OfferStatusOpen},
-			sq.Eq{"service_id": serviceId},
-			sq.GtOrEq{"datetime": from},
-			sq.LtOrEq{"datetime": to}).
+			sq.And{
+				sq.Eq{"status": model.OfferStatusOpen},
+				sq.Eq{"service_id": serviceId},
+				sq.GtOrEq{"datetime": from},
+				sq.LtOrEq{"datetime": to},
+			}).
 		OrderBy("datetime").
 		Limit(uint64(limit)).Offset(uint64((page - 1) * limit))
 	rows, err := q.QueryContext(ctx)
@@ -143,7 +145,7 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 		return nil, err
 	}
 	defer rows.Close()
-	var offers []model.Offer
+	offers := make([]model.Offer, 0)
 	for rows.Next() {
 		var o model.Offer
 		err = rows.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.CompanyName,
@@ -151,6 +153,7 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 		if err != nil {
 			return nil, err
 		}
+		offers = append(offers, o)
 	}
 	return offers, nil
 }
@@ -172,7 +175,8 @@ func (r *Repository) Book(ctx context.Context, offerId int64, customerId string)
 
 func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error) {
 	q := r.psql.Builder().Select("id", "service_id", "customer", "datetime",
-		"description", "price", "status", "canceled_reason", "created_by", "updated_by", "created_at", "updated_at").
+		"company_id", "company_name", "description", "price", "status", "canceled_reason",
+		"created_by", "updated_by", "created_at", "updated_at").
 		From("offer").
 		Where(sq.Eq{"company_id": companyId}).
 		OrderBy("datetime DESC").
@@ -190,7 +194,7 @@ func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, l
 	defer rows.Close()
 	for rows.Next() {
 		var o model.Offer
-		err = rows.Scan(&o.ID, &o.ServiceID, &o.Customer, &o.Datetime, &o.Description,
+		err = rows.Scan(&o.ID, &o.ServiceID, &o.Customer, &o.Datetime, &o.CompanyID, &o.CompanyName, &o.Description,
 			&o.Price, &o.Status, &o.CancelReason, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
 		if err != nil {
 			return nil, err

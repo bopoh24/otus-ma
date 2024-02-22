@@ -7,6 +7,7 @@ import (
 	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/go-chi/chi/v5"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -93,10 +94,20 @@ func (a *App) handlerChangeOfferStatus(w http.ResponseWriter, r *http.Request) {
 	payload := struct {
 		Status model.OfferStatus `json:"status"`
 	}{}
+
 	if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	if payload.Status == "" {
+		helper.ErrorResponse(w, http.StatusBadRequest, "invalid status")
+		return
+	}
+	if payload.Status == model.OfferStatusCanceledByCompany || payload.Status == model.OfferStatusCanceledByCustomer {
+		helper.ErrorResponse(w, http.StatusBadRequest, "use /offers/{id}/cancel or /offers/{id}/cancel/customer")
+		return
+	}
+
 	err = a.service.OfferChangeStatus(r.Context(), id, payload.Status)
 	if err != nil {
 		if errors.Is(err, repository.ErrOfferNotFound) {
@@ -192,17 +203,25 @@ func (a *App) handlerSearchOffers(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	page := 1
 	pageStr := r.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
+	limit := 50
+
 	limitStr := r.URL.Query().Get("limit")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 	offers, err := a.service.OfferSearch(r.Context(), serviceId, from.UTC(), to.UTC(), page, limit)
 	if err != nil {
@@ -261,6 +280,7 @@ func (a *App) handlerGetCompanyOffers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	slog.Info("page and limit", "page", page, "limit", limit)
 	offers, err := a.service.CompanyOffers(r.Context(), companyId, page, limit)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())

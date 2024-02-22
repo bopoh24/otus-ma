@@ -25,9 +25,10 @@ type Keycloak struct {
 }
 
 type Config struct {
-	App      App
-	Postgres Postgres
-	Keycloak Keycloak
+	App        App
+	Postgres   Postgres
+	Keycloak   Keycloak
+	BookingUrl string `env:"BOOKING_URL" env-default:"http://localhost:8080"`
 }
 
 // New returns a new Config struct

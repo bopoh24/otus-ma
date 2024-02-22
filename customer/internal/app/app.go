@@ -6,6 +6,7 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/config"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/customer/internal/service"
+	"github.com/bopoh24/ma_1/pkg/http/client"
 	"github.com/bopoh24/ma_1/pkg/http/router"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
@@ -20,6 +21,7 @@ type App struct {
 	service        *service.Service
 	log            *slog.Logger
 	server         *http.Server
+	bookingClient  client.HttpRequester
 }
 
 func New(conf *config.Config, log *slog.Logger) *App {
@@ -28,6 +30,7 @@ func New(conf *config.Config, log *slog.Logger) *App {
 		conf:           conf,
 		keycloakClient: gocloak.NewClient(conf.Keycloak.URL),
 		server:         &http.Server{Addr: ":80"},
+		bookingClient:  client.NewHttpClient(conf.BookingUrl),
 	}
 }
 
@@ -57,6 +60,9 @@ func (a *App) Run(ctx context.Context) error {
 		r.Post("/phone/verify", a.handlerRequestPhoneVerification)
 		r.Post("/phone/verify/check", a.handlerVerifyPhone)
 		r.Get("/{id}", a.handlerCustomerByID)
+
+		r.Get("/offers", a.handlerGetOffers)
+		r.Post("/offer/{id}/book", a.handlerBookOffer)
 	})
 	// set base context
 	a.server.BaseContext = func(listener net.Listener) context.Context {

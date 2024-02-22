@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Nerzal/gocloak/v13"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
+	"io"
 	"net/http"
 )
 
@@ -277,4 +279,32 @@ func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helper.JSONResponse(w, http.StatusOK, map[string]string{"result": "phone verified"})
+}
+
+func (a *App) handlerGetOffers(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.RawQuery
+	if q != "" {
+		q = "?" + q
+	}
+
+	resp, err := a.bookingClient.Get(r.Context(), fmt.Sprintf("/booking/offers%s", q), nil)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	w.WriteHeader(resp.StatusCode)
+	_, err = io.Copy(w, resp.Body)
+}
+
+func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	resp, err := a.bookingClient.Post(r.Context(), fmt.Sprintf("/booking/offers/%s/book", id), nil, r.Header.Clone())
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	w.WriteHeader(resp.StatusCode)
+	_, err = io.Copy(w, resp.Body)
 }
