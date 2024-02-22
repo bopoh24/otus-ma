@@ -75,21 +75,21 @@ func (a *App) handlerBalance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handlerPaymentMake(w http.ResponseWriter, r *http.Request) {
-	payload := struct {
-		OrderID int64   `json:"order_id"`
-		Amount  float32 `json:"amount"`
-	}{}
-	err := json.NewDecoder(r.Body).Decode(&payload)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
 	claims, err := helper.ExtractClaims(r)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
 	}
-	err = a.service.PaymentMake(r.Context(), payload.OrderID, claims.Id, payload.Amount)
+	payload := struct {
+		OfferID int64   `json:"offer_id"`
+		Amount  float32 `json:"amount"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	err = a.service.PaymentMake(r.Context(), payload.OfferID, claims.Id, payload.Amount)
 	if err != nil {
 		if errors.Is(err, repository.ErrAccountNotFound) {
 			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
@@ -107,7 +107,7 @@ func (a *App) handlerPaymentMake(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handlerPaymentCancel(w http.ResponseWriter, r *http.Request) {
 	payload := struct {
-		OrderID int64 `json:"order_id"`
+		OrderID int64 `json:"offer_id"`
 	}{}
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {

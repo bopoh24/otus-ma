@@ -191,52 +191,6 @@ func TestHandlerDeleteOffer(t *testing.T) {
 	})
 }
 
-func TestHandlerChangeOfferStatus(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	repo := mock.NewMockRepository(ctrl)
-	a := createMockApp(repo)
-
-	payload := struct {
-		Status model.OfferStatus `json:"status"`
-	}{Status: model.OfferStatus("test")}
-
-	reqBody, err := json.Marshal(payload)
-	assert.NoError(t, err)
-
-	t.Run("empty body", func(t *testing.T) {
-		r := httptest.NewRequest("PUT", "/booking/offers/1/status", nil)
-		rctx := chi.NewRouteContext()
-		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
-		rctx.URLParams.Add("id", "1")
-		w := httptest.NewRecorder()
-		a.handlerChangeOfferStatus(w, r)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
-	})
-
-	t.Run("not found", func(t *testing.T) {
-		r := httptest.NewRequest("PUT", "/booking/offers/1/status", bytes.NewReader(reqBody))
-		rctx := chi.NewRouteContext()
-		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
-		rctx.URLParams.Add("id", "1")
-		w := httptest.NewRecorder()
-		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OfferStatus("test")).Return(repository.ErrOfferNotFound).Times(1)
-		a.handlerChangeOfferStatus(w, r)
-		assert.Equal(t, http.StatusNotFound, w.Code)
-	})
-
-	t.Run("good request", func(t *testing.T) {
-		r := httptest.NewRequest("PUT", "/booking/offers/1/status", bytes.NewReader(reqBody))
-		rctx := chi.NewRouteContext()
-		r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
-		rctx.URLParams.Add("id", "1")
-		w := httptest.NewRecorder()
-		repo.EXPECT().OfferChangeStatus(gomock.Any(), int64(1), model.OfferStatus("test")).Return(nil).Times(1)
-		a.handlerChangeOfferStatus(w, r)
-		assert.Equal(t, http.StatusOK, w.Code)
-	})
-}
-
 func TestHandlerCancelOfferByCompany(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -365,7 +319,7 @@ func TestHandlerBookOffer(t *testing.T) {
 		r.Header.Set("X-User", "user_id1xxx")
 		r.Header.Set("X-Email", "some@email.com")
 		w := httptest.NewRecorder()
-		repo.EXPECT().Book(gomock.Any(), int64(1), r.Header.Get("X-User")).Return(repository.ErrOfferNotFound).Times(1)
+		repo.EXPECT().Book(gomock.Any(), int64(1), r.Header.Get("X-User")).Return(model.Offer{}, repository.ErrOfferNotFound).Times(1)
 		a.handlerBookOffer(w, r)
 		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
@@ -378,7 +332,7 @@ func TestHandlerBookOffer(t *testing.T) {
 		r.Header.Set("X-User", "user_id1xxx")
 		r.Header.Set("X-Email", "some@email.com")
 		w := httptest.NewRecorder()
-		repo.EXPECT().Book(gomock.Any(), int64(1), r.Header.Get("X-User")).Return(nil).Times(1)
+		repo.EXPECT().Book(gomock.Any(), int64(1), r.Header.Get("X-User")).Return(model.Offer{}, nil).Times(1)
 		a.handlerBookOffer(w, r)
 		assert.Equal(t, http.StatusOK, w.Code)
 	})

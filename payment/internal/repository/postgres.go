@@ -29,7 +29,7 @@ func New(dbConf config.Postgres) (*Repository, error) {
 }
 
 func (r *Repository) CreateAccount(ctx context.Context, customerID string) error {
-	q := r.psql.Builder().Insert("account").Columns("customer").Values(customerID)
+	q := r.psql.Builder().Insert("account").Columns("customer", "balance").Values(customerID, 0)
 	_, err := q.ExecContext(ctx)
 	return err
 }
@@ -48,15 +48,15 @@ func (r *Repository) TopUp(ctx context.Context, customerID string, amount float3
 	}()
 	q := r.psql.Builder().Update("account").
 		Set("balance", sq.Expr("balance + ?", amount)).
-		Where(sq.Eq{"customer": customerID})
+		Where(sq.Eq{"customer": customerID}).RunWith(tx)
 	_, err = q.ExecContext(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrAccountNotFound
 		}
 	}
-	qt := r.psql.Builder().Insert("transaction").Columns("transaction_type", "customer", "amount").
-		Values(model.TransactionTypeTopUp, customerID, amount)
+	qt := r.psql.Builder().Insert("transaction").Columns("type", "customer", "amount").
+		Values(model.TransactionTypeTopUp, customerID, amount).RunWith(tx)
 	_, err = qt.ExecContext(ctx)
 	return err
 }
@@ -69,7 +69,7 @@ func (r *Repository) Balance(ctx context.Context, customerID string) (float32, e
 	return balance, err
 }
 
-func (r *Repository) PaymentMake(ctx context.Context, orderId int64, customerID string, amount float32) error {
+func (r *Repository) PaymentMake(ctx context.Context, offerId int64, customerID string, amount float32) error {
 	balance, err := r.Balance(ctx, customerID)
 	if err != nil {
 		return err
@@ -93,16 +93,16 @@ func (r *Repository) PaymentMake(ctx context.Context, orderId int64, customerID 
 
 	q := r.psql.Builder().Update("account").
 		Set("balance", balance).
-		Where(sq.Eq{"customer": customerID})
+		Where(sq.Eq{"customer": customerID}).RunWith(tx)
 	_, err = q.ExecContext(ctx)
 
-	qt := r.psql.Builder().Insert("transaction").Columns("transaction_type", "customer", "order_id", "amount").
-		Values(model.TransactionTypePayment, customerID, orderId, amount)
+	qt := r.psql.Builder().Insert("transaction").Columns("type", "customer", "offer_id", "amount").
+		Values(model.TransactionTypePayment, customerID, offerId, amount).RunWith(tx)
 	_, err = qt.ExecContext(ctx)
 	return err
 }
 
-func (r *Repository) PaymentCancel(ctx context.Context, orderId int64) error {
+func (r *Repository) PaymentCancel(ctx context.Context, offerId int64) error {
 	tx, err := r.psql.Tx(ctx)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func (r *Repository) PaymentCancel(ctx context.Context, orderId int64) error {
 		}
 		err = tx.Commit()
 	}()
-	q := r.psql.Builder().Select("customer", "amount").From("transaction").Where(sq.Eq{"order_id": orderId})
+	q := r.psql.Builder().Select("customer", "amount").From("transaction").Where(sq.Eq{"offer_id": offerId})
 	row := q.QueryRowContext(ctx)
 	var customerID string
 	var amount float32
@@ -128,15 +128,15 @@ func (r *Repository) PaymentCancel(ctx context.Context, orderId int64) error {
 
 	qa := r.psql.Builder().Update("account").
 		Set("balance", sq.Expr("balance + ?", amount)).
-		Where(sq.Eq{"customer": customerID})
+		Where(sq.Eq{"customer": customerID}).RunWith(tx)
 	_, err = qa.ExecContext(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrAccountNotFound
 		}
 	}
-	qt := r.psql.Builder().Insert("transaction").Columns("transaction_type", "customer", "order_id", "amount").
-		Values(model.TransactionTypeRefund, customerID, orderId, amount)
+	qt := r.psql.Builder().Insert("transaction").Columns("type", "customer", "offer_id", "amount").
+		Values(model.TransactionTypeRefund, customerID, offerId, amount).RunWith(tx)
 	_, err = qt.ExecContext(ctx)
 	return err
 }

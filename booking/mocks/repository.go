@@ -41,11 +41,12 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Book mocks base method.
-func (m *MockRepository) Book(ctx context.Context, offerId int64, customerId string) error {
+func (m *MockRepository) Book(ctx context.Context, offerId int64, customerId string) (model.Offer, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Book", ctx, offerId, customerId)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(model.Offer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Book indicates an expected call of Book.
@@ -140,20 +141,6 @@ func (mr *MockRepositoryMockRecorder) OfferCancelByCustomer(ctx, id, reason, cus
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferCancelByCustomer", reflect.TypeOf((*MockRepository)(nil).OfferCancelByCustomer), ctx, id, reason, customerId)
 }
 
-// OfferChangeStatus mocks base method.
-func (m *MockRepository) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "OfferChangeStatus", ctx, id, status)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// OfferChangeStatus indicates an expected call of OfferChangeStatus.
-func (mr *MockRepositoryMockRecorder) OfferChangeStatus(ctx, id, status any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferChangeStatus", reflect.TypeOf((*MockRepository)(nil).OfferChangeStatus), ctx, id, status)
-}
-
 // OfferDelete mocks base method.
 func (m *MockRepository) OfferDelete(ctx context.Context, id, companyId int64) error {
 	m.ctrl.T.Helper()
@@ -166,6 +153,34 @@ func (m *MockRepository) OfferDelete(ctx context.Context, id, companyId int64) e
 func (mr *MockRepositoryMockRecorder) OfferDelete(ctx, id, companyId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferDelete", reflect.TypeOf((*MockRepository)(nil).OfferDelete), ctx, id, companyId)
+}
+
+// OfferPaid mocks base method.
+func (m *MockRepository) OfferPaid(ctx context.Context, id int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OfferPaid", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OfferPaid indicates an expected call of OfferPaid.
+func (mr *MockRepositoryMockRecorder) OfferPaid(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferPaid", reflect.TypeOf((*MockRepository)(nil).OfferPaid), ctx, id)
+}
+
+// OfferReset mocks base method.
+func (m *MockRepository) OfferReset(ctx context.Context, id int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OfferReset", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// OfferReset indicates an expected call of OfferReset.
+func (mr *MockRepositoryMockRecorder) OfferReset(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OfferReset", reflect.TypeOf((*MockRepository)(nil).OfferReset), ctx, id)
 }
 
 // OfferSearch mocks base method.

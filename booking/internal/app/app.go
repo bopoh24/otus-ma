@@ -44,7 +44,8 @@ func (a *App) Run(ctx context.Context) error {
 		// delete offer
 		r.Delete("/offers/{id}", a.handlerDeleteOffer)
 		// change offer status
-		r.Put("/offers/{id}/status", a.handlerChangeOfferStatus)
+		r.Put("/offers/{id}/paid", a.handlerPaidOffer)
+		r.Put("/offers/{id}/reset", a.handlerResetOffer)
 
 		r.Post("/offers/{id}/cancel", a.handlerCancelOfferByCompany)
 		r.Post("/offers/{id}/cancel/customer", a.handlerCancelOfferByCustomer)

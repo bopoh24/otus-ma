@@ -9,8 +9,8 @@ type Repository interface {
 	CreateAccount(ctx context.Context, customerID string) error
 	Balance(ctx context.Context, customerID string) (float32, error)
 	TopUp(ctx context.Context, customerID string, amount float32) error
-	PaymentMake(ctx context.Context, orderId int64, customerID string, amount float32) error
-	PaymentCancel(ctx context.Context, orderId int64) error
+	PaymentMake(ctx context.Context, offerId int64, customerID string, amount float32) error
+	PaymentCancel(ctx context.Context, offerId int64) error
 	Close(ctx context.Context) error
 }
 
@@ -41,13 +41,13 @@ func (s *Service) Balance(ctx context.Context, customerID string) (float32, erro
 }
 
 // PaymentMake creates a new payment
-func (s *Service) PaymentMake(ctx context.Context, orderId int64, customerID string, amount float32) error {
-	return s.repo.PaymentMake(ctx, orderId, customerID, amount)
+func (s *Service) PaymentMake(ctx context.Context, offerId int64, customerID string, amount float32) error {
+	return s.repo.PaymentMake(ctx, offerId, customerID, amount)
 }
 
 // PaymentCancel cancels the payment
-func (s *Service) PaymentCancel(ctx context.Context, orderId int64) error {
-	return s.repo.PaymentCancel(ctx, orderId)
+func (s *Service) PaymentCancel(ctx context.Context, offerId int64) error {
+	return s.repo.PaymentCancel(ctx, offerId)
 }
 
 // Close closes the Service

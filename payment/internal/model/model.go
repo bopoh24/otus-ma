@@ -20,7 +20,7 @@ type Transaction struct {
 	ID       int64     `json:"id"`
 	Type     string    `json:"transaction_type"`
 	Customer string    `json:"customer"`
-	OrderId  int64     `json:"order_id,omitempty"`
+	OfferId  int64     `json:"offer_id,omitempty"`
 	Amount   int64     `json:"amount"`
 	Created  time.Time `json:"created_at"`
 }

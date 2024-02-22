@@ -84,42 +84,6 @@ func (a *App) handlerDeleteOffer(w http.ResponseWriter, r *http.Request) {
 	helper.JSONResponse(w, http.StatusOK, nil)
 }
 
-func (a *App) handlerChangeOfferStatus(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	payload := struct {
-		Status model.OfferStatus `json:"status"`
-	}{}
-
-	if err = json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	if payload.Status == "" {
-		helper.ErrorResponse(w, http.StatusBadRequest, "invalid status")
-		return
-	}
-	if payload.Status == model.OfferStatusCanceledByCompany || payload.Status == model.OfferStatusCanceledByCustomer {
-		helper.ErrorResponse(w, http.StatusBadRequest, "use /offers/{id}/cancel or /offers/{id}/cancel/customer")
-		return
-	}
-
-	err = a.service.OfferChangeStatus(r.Context(), id, payload.Status)
-	if err != nil {
-		if errors.Is(err, repository.ErrOfferNotFound) {
-			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
-			return
-		}
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	helper.JSONResponse(w, http.StatusOK, nil)
-}
-
 func (a *App) handlerCancelOfferByCompany(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -243,7 +207,7 @@ func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
 	}
-	err = a.service.Book(r.Context(), id, claims.Id)
+	offer, err := a.service.Book(r.Context(), id, claims.Id)
 	if err != nil {
 		if errors.Is(err, repository.ErrOfferNotFound) {
 			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
@@ -252,7 +216,7 @@ func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	helper.JSONResponse(w, http.StatusOK, nil)
+	helper.JSONResponse(w, http.StatusOK, offer)
 }
 
 func (a *App) handlerGetCompanyOffers(w http.ResponseWriter, r *http.Request) {
@@ -313,4 +277,42 @@ func (a *App) handlerGetCustomerOffers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helper.JSONResponse(w, http.StatusOK, offers)
+}
+
+func (a *App) handlerPaidOffer(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	err = a.service.OfferPaid(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrOfferNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	helper.JSONResponse(w, http.StatusOK, nil)
+}
+
+func (a *App) handlerResetOffer(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	err = a.service.OfferReset(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrOfferNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	helper.JSONResponse(w, http.StatusOK, nil)
 }

@@ -12,13 +12,16 @@ type Repository interface {
 	ServiceAdd(ctx context.Context, service model.Service) error
 	OfferAdd(ctx context.Context, offer model.Offer) error
 	OfferDelete(ctx context.Context, id int64, companyId int64) error
-	OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error
+
+	OfferPaid(ctx context.Context, id int64) error
+	OfferReset(ctx context.Context, id int64) error
+
 	OfferCancelByCompany(ctx context.Context, id int64, reason string, companyId int64, managerId string) error
 	OfferCancelByCustomer(ctx context.Context, id int64, reason string, customerId string) error
 
 	// TODO: add search by location
 	OfferSearch(ctx context.Context, serviceId int64, from, to time.Time, page, limit int) ([]model.Offer, error)
-	Book(ctx context.Context, offerId int64, customerId string) error
+	Book(ctx context.Context, offerId int64, customerId string) (model.Offer, error)
 
 	CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error)
 	CustomerOffers(ctx context.Context, customerId string, page, limit int) ([]model.Offer, error)
@@ -72,9 +75,14 @@ func (s *Service) OfferDelete(ctx context.Context, id int64, companyId int64) er
 	return s.repo.OfferDelete(ctx, id, companyId)
 }
 
-// OfferChangeStatus changes the status of an offer
-func (s *Service) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
-	return s.repo.OfferChangeStatus(ctx, id, status)
+// OfferPaid pays for an offer
+func (s *Service) OfferPaid(ctx context.Context, id int64) error {
+	return s.repo.OfferPaid(ctx, id)
+}
+
+// OfferReset resets an offer
+func (s *Service) OfferReset(ctx context.Context, id int64) error {
+	return s.repo.OfferReset(ctx, id)
 }
 
 // OfferCancelByCompany cancels an offer by company
@@ -98,7 +106,7 @@ func (s *Service) OfferSearch(ctx context.Context, serviceId int64, from, to tim
 }
 
 // Book books an offer
-func (s *Service) Book(ctx context.Context, offerId int64, customerId string) error {
+func (s *Service) Book(ctx context.Context, offerId int64, customerId string) (model.Offer, error) {
 	return s.repo.Book(ctx, offerId, customerId)
 }
 

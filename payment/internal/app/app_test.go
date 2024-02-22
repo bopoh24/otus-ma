@@ -105,8 +105,8 @@ func TestHandlerPaymentCancel(t *testing.T) {
 	a := createMockApp(repo)
 
 	payload := struct {
-		OrderId int64 `json:"order_id"`
-	}{OrderId: 1}
+		OfferId int64 `json:"offer_id"`
+	}{OfferId: 1}
 
 	reqBody, err := json.Marshal(payload)
 	assert.NoError(t, err)
@@ -140,7 +140,7 @@ func TestHandlerPaymentMake(t *testing.T) {
 	a := createMockApp(repo)
 
 	payload := struct {
-		OrderID int64   `json:"order_id"`
+		OrderID int64   `json:"offer_id"`
 		Amount  float32 `json:"amount"`
 	}{OrderID: 1, Amount: 10.5}
 

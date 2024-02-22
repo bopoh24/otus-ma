@@ -75,7 +75,8 @@ func (r *Repository) OfferAdd(ctx context.Context, offer model.Offer) error {
 
 // OfferDelete deletes an offer
 func (r *Repository) OfferDelete(ctx context.Context, id int64, companyId int64) error {
-	q := r.psql.Builder().Delete("offer").Where(sq.Eq{"id": id}, sq.Eq{"company_id": companyId})
+	q := r.psql.Builder().Delete("offer").Where(sq.Eq{"id": id},
+		sq.Eq{"company_id": companyId}, sq.Eq{"status": model.OfferStatusOpen})
 	_, err := q.ExecContext(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrOfferNotFound
@@ -83,12 +84,26 @@ func (r *Repository) OfferDelete(ctx context.Context, id int64, companyId int64)
 	return err
 }
 
-// OfferChangeStatus changes the status of an offer
-func (r *Repository) OfferChangeStatus(ctx context.Context, id int64, status model.OfferStatus) error {
+// OfferPaid pays for an offer
+func (r *Repository) OfferPaid(ctx context.Context, id int64) error {
 	q := r.psql.Builder().Update("offer").
-		Set("status", status).
+		Set("status", model.OfferStatusPaid).
 		Set("updated_at", sq.Expr("NOW()")).
-		Where(sq.Eq{"id": id})
+		Where(sq.Eq{"id": id}, sq.Eq{"status": model.OfferStatusReserved})
+	_, err := q.ExecContext(ctx)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrOfferNotFound
+	}
+	return err
+}
+
+// OfferReset resets an offer
+func (r *Repository) OfferReset(ctx context.Context, id int64) error {
+	q := r.psql.Builder().Update("offer").
+		Set("status", model.OfferStatusOpen).
+		Set("customer", "").
+		Set("updated_at", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": id}, sq.Eq{"status": model.OfferStatusReserved})
 	_, err := q.ExecContext(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrOfferNotFound
@@ -159,7 +174,7 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 }
 
 // Book books an offer
-func (r *Repository) Book(ctx context.Context, offerId int64, customerId string) error {
+func (r *Repository) Book(ctx context.Context, offerId int64, customerId string) (model.Offer, error) {
 	q := r.psql.Builder().Update("offer").
 		Set("status", model.OfferStatusReserved).
 		Set("customer", customerId).
@@ -167,10 +182,20 @@ func (r *Repository) Book(ctx context.Context, offerId int64, customerId string)
 		Where(sq.Eq{"id": offerId}, sq.Eq{"status": model.OfferStatusOpen})
 	_, err := q.ExecContext(ctx)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ErrOfferNotFound
+		return model.Offer{}, ErrOfferNotFound
 	}
-	return err
-
+	qo := r.psql.Builder().Select("id", "service_id", "company_id", "datetime",
+		"description", "price", "status").
+		From("offer").
+		Where(sq.Eq{"id": offerId})
+	row := qo.QueryRowContext(ctx)
+	var o model.Offer
+	err = row.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.Datetime,
+		&o.Description, &o.Price, &o.Status)
+	if err != nil {
+		return model.Offer{}, err
+	}
+	return o, nil
 }
 
 func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error) {
