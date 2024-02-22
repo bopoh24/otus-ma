@@ -46,7 +46,7 @@ func (a *App) Run(ctx context.Context) error {
 		r.Post("/offers/{id}/cancel/customer", a.handlerCancelOfferByCustomer)
 		r.Post("/offers/{id}/book", a.handlerBookOffer)
 		r.Get("/offers", a.handlerSearchOffers)
-		r.Get("/company/offers/{companyId}", a.handlerGetCompanyOffers)
+		r.Get("/company/offers/{id}", a.handlerGetCompanyOffers)
 		r.Get("/customer/offers", a.handlerGetCustomerOffers)
 	})
 	// set base context

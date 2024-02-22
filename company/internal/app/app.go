@@ -6,6 +6,7 @@ import (
 	"github.com/bopoh24/ma_1/company/internal/config"
 	"github.com/bopoh24/ma_1/company/internal/repository"
 	"github.com/bopoh24/ma_1/company/internal/service"
+	"github.com/bopoh24/ma_1/pkg/http/client"
 	"github.com/bopoh24/ma_1/pkg/http/router"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
@@ -17,6 +18,7 @@ type App struct {
 	conf           *config.Config
 	keycloakClient *gocloak.GoCloak
 	service        *service.Service
+	bookingClient  client.HttpRequester
 	log            *slog.Logger
 	server         *http.Server
 }
@@ -27,6 +29,7 @@ func New(conf *config.Config, log *slog.Logger) *App {
 		conf:           conf,
 		keycloakClient: gocloak.NewClient(conf.Keycloak.URL),
 		server:         &http.Server{Addr: ":80"},
+		bookingClient:  client.NewHttpClient(conf.BookingUrl),
 	}
 }
 
@@ -52,8 +55,9 @@ func (a *App) Run(ctx context.Context) error {
 		r.Post("/{id}/activate", a.handlerActivateDeactivate(true))
 		r.Post("/{id}/deactivate", a.handlerActivateDeactivate(false))
 		r.Get("/{id}/managers", a.handlerGetManagers)
+		r.Post("/{id}/offers", a.handlerAddOffer)
+		r.Get("/{id}/offers", a.handlerGetOffers)
 		r.Post("/", a.handlerCreateCompany)
-
 	})
 	// set base context
 	a.server.BaseContext = func(listener net.Listener) context.Context {

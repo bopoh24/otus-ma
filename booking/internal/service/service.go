@@ -52,7 +52,14 @@ func (s *Service) Services(ctx context.Context) ([]model.Service, error) {
 
 // ServiceAdd adds a new service
 func (s *Service) ServiceAdd(ctx context.Context, service model.Service) error {
-	return s.repo.ServiceAdd(ctx, service)
+	err := s.repo.ServiceAdd(ctx, service)
+	if err == nil {
+		s.services, err = s.repo.Services(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 // OfferAdd adds a new offer
@@ -83,7 +90,11 @@ func (s *Service) OfferCancelByCustomer(ctx context.Context, id int64, reason st
 
 // OfferSearch searches for offers
 func (s *Service) OfferSearch(ctx context.Context, serviceId int64, from, to time.Time, page, limit int) ([]model.Offer, error) {
-	return s.repo.OfferSearch(ctx, serviceId, from, to, page, limit)
+	offers, err := s.repo.OfferSearch(ctx, serviceId, from, to, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	return s.addServiceNameToOffers(offers)
 }
 
 // Book books an offer
@@ -93,39 +104,30 @@ func (s *Service) Book(ctx context.Context, offerId int64, customerId string) er
 
 // CompanyOffers returns offers of a company
 func (s *Service) CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error) {
-	services, err := s.Services(ctx)
-	if err != nil {
-		return nil, err
-	}
 	offers, err := s.repo.CompanyOffers(ctx, companyId, page, limit)
 	if err != nil {
 		return nil, err
 	}
 	// add service name to offers
-	for i := range offers {
-		for _, service := range services {
-			if offers[i].ServiceID == service.ID {
-				offers[i].ServiceName = service.Name
-				break
-			}
-		}
-	}
-	return offers, nil
+	return s.addServiceNameToOffers(offers)
 }
 
 // CustomerOffers returns offers of a customer
 func (s *Service) CustomerOffers(ctx context.Context, customerId string, page, limit int) ([]model.Offer, error) {
-	services, err := s.Services(ctx)
-	if err != nil {
-		return nil, err
-	}
 	offers, err := s.repo.CustomerOffers(ctx, customerId, page, limit)
 	if err != nil {
 		return nil, err
 	}
-	// add service name to offers
+	return s.addServiceNameToOffers(offers)
+}
+
+func (s *Service) addServiceNameToOffers(offers []model.Offer) ([]model.Offer, error) {
+	_, err := s.Services(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	for i := range offers {
-		for _, service := range services {
+		for _, service := range s.services {
 			if offers[i].ServiceID == service.ID {
 				offers[i].ServiceName = service.Name
 				break

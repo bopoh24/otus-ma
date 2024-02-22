@@ -825,6 +825,132 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/api/v1/company/{id}/offers",
+      "method": "POST",
+      "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_url": "http://booksvc-keycloak.booksvc.svc.cluster.local/realms/company/protocol/openid-connect/certs",
+          "cache": true,
+          "disable_jwk_security": true,
+          "operation_debug": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "x-user"
+            ],
+            [
+              "email",
+              "x-email"
+            ],
+            [
+              "given_name",
+              "x-given-name"
+            ],
+            [
+              "family_name",
+              "x-family-name"
+            ]
+          ]
+        }
+      },
+      "backend": [
+        {
+          "url_pattern": "/company/{id}/offers",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "POST",
+          "host": [
+            "http://booksvc-company.booksvc.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/company/{id}/offers",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "input_headers": [
+        "*"
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_url": "http://booksvc-keycloak.booksvc.svc.cluster.local/realms/company/protocol/openid-connect/certs",
+          "cache": true,
+          "disable_jwk_security": true,
+          "operation_debug": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "x-user"
+            ],
+            [
+              "email",
+              "x-email"
+            ],
+            [
+              "given_name",
+              "x-given-name"
+            ],
+            [
+              "family_name",
+              "x-family-name"
+            ]
+          ]
+        }
+      },
+      "backend": [
+        {
+          "url_pattern": "/company/{id}/offers",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://booksvc-company.booksvc.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/v1/booking/services",
+      "method": "GET",
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/booking/services",
+          "encoding": "no-op",
+          "sd": "static",
+          "method": "GET",
+          "host": [
+            "http://booksvc-booking.booksvc.svc.cluster.local"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_code": true
+            }
+          },
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }

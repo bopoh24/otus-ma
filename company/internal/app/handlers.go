@@ -4,13 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Nerzal/gocloak/v13"
+	bookingModel "github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/company/internal/model"
 	"github.com/bopoh24/ma_1/company/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/go-chi/chi/v5"
+	"io"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (a *App) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -331,7 +335,8 @@ func (a *App) handlerCreateCompany(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	helper.JSONResponse(w, http.StatusCreated, map[string]int64{"id": companyId})
+	company.ID = companyId
+	helper.JSONResponse(w, http.StatusCreated, company)
 }
 
 func (a *App) handlerMyCompanies(w http.ResponseWriter, r *http.Request) {
@@ -369,11 +374,112 @@ func (a *App) handlerGetManagers(w http.ResponseWriter, r *http.Request) {
 	helper.JSONResponse(w, http.StatusOK, managers)
 }
 
+func (a *App) handlerAddOffer(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	payload := struct {
+		ServiceID   int       `json:"service_id"`
+		Price       float64   `json:"price"`
+		Description string    `json:"description"`
+		Datetime    time.Time `json:"datetime"`
+	}{}
+	err = json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if payload.ServiceID == 0 || payload.Price == 0 || payload.Datetime.IsZero() {
+		helper.ErrorResponse(w, http.StatusBadRequest, "company_id, service_id, price and datetime are required")
+		return
+	}
+
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleManager); err != nil {
+		helper.ErrorResponse(w, http.StatusForbidden, err.Error())
+		return
+	}
+
+	company, err := a.service.CompanyByID(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, repository.ErrCompanyNotFound) {
+			helper.ErrorResponse(w, http.StatusNotFound, err.Error())
+			return
+		}
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	offer := bookingModel.Offer{
+		CompanyID:   id,
+		ServiceID:   payload.ServiceID,
+		Price:       payload.Price,
+		Description: payload.Description,
+		Datetime:    payload.Datetime,
+		CompanyName: company.Name,
+		Location:    company.Location,
+		Status:      bookingModel.OfferStatusOpen,
+		CreatedBy:   claims.Id,
+		UpdatedBy:   claims.Id,
+	}
+
+	resp, err := a.bookingClient.Post(r.Context(), "/booking/offers", offer, nil)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	w.WriteHeader(resp.StatusCode)
+	_, err = io.Copy(w, resp.Body)
+}
+
+func (a *App) handlerGetOffers(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	if err = a.checkRole(r.Context(), id, claims.Id, model.MangerRoleManager); err != nil {
+		helper.ErrorResponse(w, http.StatusForbidden, err.Error())
+		return
+	}
+	q := r.URL.RawQuery
+	if q != "" {
+		q = "?" + q
+	}
+	resp, err := a.bookingClient.Get(r.Context(), fmt.Sprintf("/booking/company/offers/%d%s", id, q), nil)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	w.WriteHeader(resp.StatusCode)
+	_, err = io.Copy(w, resp.Body)
+}
+
 func (a *App) checkRole(ctx context.Context,
 	companyId int64, userId string, expectedRole model.MangerRole) error {
-	// check if user has admin role
+	rolePriorities := map[model.MangerRole]int{
+		model.MangerRoleAdmin:   2,
+		model.MangerRoleManager: 1,
+	}
 	role, err := a.service.ManagerRole(ctx, companyId, userId)
-	if err != nil || role != expectedRole {
+	if err != nil || rolePriorities[role] < rolePriorities[expectedRole] {
 		return errors.New("forbidden")
 	}
 	return nil

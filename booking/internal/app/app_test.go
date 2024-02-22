@@ -73,6 +73,7 @@ func TestHandlerAddService(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		repo.EXPECT().ServiceAdd(gomock.Any(), svc).Return(nil).Times(1)
+		repo.EXPECT().Services(gomock.Any()).Return([]model.Service{}, nil).Times(1)
 		a.handlerAddService(w, r)
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
@@ -89,6 +90,7 @@ func TestHandlerAddService(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		repo.EXPECT().ServiceAdd(gomock.Any(), svc).Return(nil).Times(1)
+		repo.EXPECT().Services(gomock.Any()).Return([]model.Service{}, nil).Times(1)
 		a.handlerAddService(w, r)
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
@@ -390,7 +392,7 @@ func TestHandlerGetCompanyOffers(t *testing.T) {
 	r := httptest.NewRequest("GET", "/booking/company/offers/123?page=1&limit=10", nil)
 	rctx := chi.NewRouteContext()
 	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
-	rctx.URLParams.Add("companyId", "123")
+	rctx.URLParams.Add("id", "123")
 	w := httptest.NewRecorder()
 	repo.EXPECT().Services(gomock.Any()).Return([]model.Service{}, nil)
 	repo.EXPECT().CompanyOffers(gomock.Any(), int64(123), 1, 10).Return([]model.Offer{
@@ -440,6 +442,13 @@ func TestHandlerSearchOffers(t *testing.T) {
 	w := httptest.NewRecorder()
 	from := time.Date(2024, 1, 1, 9, 0, 0, 0, time.UTC)
 	to := time.Date(2024, 1, 1, 10, 0, 0, 0, time.UTC)
+	repo.EXPECT().Services(gomock.Any()).Return([]model.Service{
+		{
+			ID:       1,
+			ParentID: 0,
+			Name:     "test",
+		},
+	}, nil)
 	repo.EXPECT().OfferSearch(gomock.Any(), int64(1), from, to, 1, 10).Return([]model.Offer{
 		{
 			ID:          1,

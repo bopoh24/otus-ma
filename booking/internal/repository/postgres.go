@@ -40,7 +40,11 @@ func (r *Repository) Services(ctx context.Context) ([]model.Service, error) {
 	var services []model.Service
 	for rows.Next() {
 		var s model.Service
-		err = rows.Scan(&s.ID, &s.ParentID, &s.Name)
+		var parent sql.NullInt64
+		err = rows.Scan(&s.ID, &parent, &s.Name)
+		if parent.Valid {
+			s.ParentID = int(parent.Int64)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -61,10 +65,10 @@ func (r *Repository) ServiceAdd(ctx context.Context, service model.Service) erro
 // OfferAdd adds a new offer
 func (r *Repository) OfferAdd(ctx context.Context, offer model.Offer) error {
 	q := r.psql.Builder().Insert("offer").
-		Columns("service_id", "company_id", "location", "datetime",
-			"description", "price", "status", "created_by").
-		Values(offer.ServiceID, offer.CompanyID, offer.Location, offer.Datetime,
-			offer.Description, offer.Price, offer.Status, offer.CreatedBy)
+		Columns("service_id", "company_id", "company_name", "datetime",
+			"description", "price", "status", "created_by", "updated_by").
+		Values(offer.ServiceID, offer.CompanyID, offer.CompanyName, offer.Datetime,
+			offer.Description, offer.Price, offer.Status, offer.CreatedBy, offer.UpdatedBy)
 	_, err := q.ExecContext(ctx)
 	return err
 }
@@ -96,7 +100,7 @@ func (r *Repository) OfferChangeStatus(ctx context.Context, id int64, status mod
 func (r *Repository) OfferCancelByCompany(ctx context.Context, id int64, reason string, companyId int64, managerId string) error {
 	q := r.psql.Builder().Update("offer").
 		Set("status", model.OfferStatusCanceledByCompany).
-		Set("cancel_reason", reason).
+		Set("canceled_reason", reason).
 		Set("updated_by", managerId).
 		Set("updated_at", sq.Expr("NOW()")).
 		Where(sq.Eq{"id": id}, sq.Eq{"company_id": companyId})
@@ -111,7 +115,7 @@ func (r *Repository) OfferCancelByCompany(ctx context.Context, id int64, reason 
 func (r *Repository) OfferCancelByCustomer(ctx context.Context, id int64, reason string, customerId string) error {
 	q := r.psql.Builder().Update("offer").
 		Set("status", model.OfferStatusCanceledByCustomer).
-		Set("cancel_reason", reason).
+		Set("canceled_reason", reason).
 		Set("updated_by", customerId).
 		Set("updated_at", sq.Expr("NOW()")).
 		Where(sq.Eq{"id": id}, sq.Eq{"customer": customerId})
@@ -124,7 +128,7 @@ func (r *Repository) OfferCancelByCustomer(ctx context.Context, id int64, reason
 
 // OfferSearch searches for offers
 func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to time.Time, page, limit int) ([]model.Offer, error) {
-	q := r.psql.Builder().Select("id", "service_id", "company_id", "company_name", "location",
+	q := r.psql.Builder().Select("id", "service_id", "company_id", "company_name",
 		"datetime", "description", "price", "status").
 		From("offer").
 		Where(
@@ -132,7 +136,8 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 			sq.Eq{"service_id": serviceId},
 			sq.GtOrEq{"datetime": from},
 			sq.LtOrEq{"datetime": to}).
-		Offset(uint64(page * limit)).Limit(uint64(limit))
+		OrderBy("datetime").
+		Limit(uint64(limit)).Offset(uint64((page - 1) * limit))
 	rows, err := q.QueryContext(ctx)
 	if err != nil {
 		return nil, err
@@ -141,7 +146,7 @@ func (r *Repository) OfferSearch(ctx context.Context, serviceId int64, from, to 
 	var offers []model.Offer
 	for rows.Next() {
 		var o model.Offer
-		err = rows.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.CompanyName, &o.Location,
+		err = rows.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.CompanyName,
 			&o.Datetime, &o.Description, &o.Price, &o.Status)
 		if err != nil {
 			return nil, err
@@ -166,13 +171,16 @@ func (r *Repository) Book(ctx context.Context, offerId int64, customerId string)
 }
 
 func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, limit int) ([]model.Offer, error) {
-	q := r.psql.Builder().Select("id", "service_id", "customer", "location", "datetime",
-		"description", "price", "status", "cancel_reason", "created_by", "updated_by", "created_at", "updated_at").
+	q := r.psql.Builder().Select("id", "service_id", "customer", "datetime",
+		"description", "price", "status", "canceled_reason", "created_by", "updated_by", "created_at", "updated_at").
 		From("offer").
 		Where(sq.Eq{"company_id": companyId}).
-		Offset(uint64(page * limit)).Limit(uint64(limit))
+		OrderBy("datetime DESC").
+		Limit(uint64(limit)).Offset(uint64((page - 1) * limit))
+
 	rows, err := q.QueryContext(ctx)
-	var offers []model.Offer
+
+	offers := make([]model.Offer, 0)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return offers, nil
@@ -182,8 +190,8 @@ func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, l
 	defer rows.Close()
 	for rows.Next() {
 		var o model.Offer
-		err = rows.Scan(&o.ID, &o.ServiceID, &o.Customer, &o.Location, &o.Datetime,
-			&o.Description, &o.Price, &o.Status, &o.CancelReason, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
+		err = rows.Scan(&o.ID, &o.ServiceID, &o.Customer, &o.Datetime, &o.Description,
+			&o.Price, &o.Status, &o.CancelReason, &o.CreatedBy, &o.UpdatedBy, &o.CreatedAt, &o.UpdatedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -193,11 +201,12 @@ func (r *Repository) CompanyOffers(ctx context.Context, companyId int64, page, l
 }
 
 func (r *Repository) CustomerOffers(ctx context.Context, customerId string, page, limit int) ([]model.Offer, error) {
-	q := r.psql.Builder().Select("id", "service_id", "company_id", "location", "datetime",
-		"description", "price", "status", "cancel_reason").
+	q := r.psql.Builder().Select("id", "service_id", "company_id", "datetime",
+		"description", "price", "status", "canceled_reason").
 		From("offer").
 		Where(sq.Eq{"customer": customerId}).
-		Offset(uint64(page * limit)).Limit(uint64(limit))
+		OrderBy("datetime DESC").
+		Limit(uint64(limit)).Offset(uint64((page - 1) * limit))
 	rows, err := q.QueryContext(ctx)
 	var offers []model.Offer
 	if err != nil {
@@ -209,7 +218,7 @@ func (r *Repository) CustomerOffers(ctx context.Context, customerId string, page
 	defer rows.Close()
 	for rows.Next() {
 		var o model.Offer
-		err = rows.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.Location, &o.Datetime,
+		err = rows.Scan(&o.ID, &o.ServiceID, &o.CompanyID, &o.Datetime,
 			&o.Description, &o.Price, &o.Status, &o.CancelReason)
 		if err != nil {
 			return nil, err

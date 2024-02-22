@@ -104,6 +104,9 @@ spec:
                   name: secret
                   key: keycloakAdminPassword
 
+            - name: BOOKING_URL
+              value: http://{{.Release.Name}}-booking.{{.Release.Namespace}}.svc.cluster.local
+
       {{- with .Values.companyService.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -237,23 +237,29 @@ func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handlerGetCompanyOffers(w http.ResponseWriter, r *http.Request) {
-	companyIdStr := chi.URLParam(r, "companyId")
-	companyId, err := strconv.ParseInt(companyIdStr, 10, 64)
+	idStr := chi.URLParam(r, "id")
+	companyId, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	page := 1
 	pageStr := r.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
+	limit := 50
 	limitStr := r.URL.Query().Get("limit")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 	offers, err := a.service.CompanyOffers(r.Context(), companyId, page, limit)
 	if err != nil {

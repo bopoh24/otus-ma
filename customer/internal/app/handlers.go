@@ -9,6 +9,7 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
@@ -128,13 +129,9 @@ func (a *App) handlerRegister(w http.ResponseWriter, r *http.Request) {
 
 // byID returns a user by id
 func (a *App) handlerCustomerByID(w http.ResponseWriter, r *http.Request) {
-	claims, err := helper.ExtractClaims(r)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
-		return
-	}
+	id := chi.URLParam(r, "id")
 	// get user by id
-	customer, err := a.service.CustomerByID(r.Context(), claims.Id)
+	customer, err := a.service.CustomerByID(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrCustomerNotFound) {
 			helper.ErrorResponse(w, http.StatusNotFound, err.Error())

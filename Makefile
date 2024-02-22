@@ -178,5 +178,5 @@ newman: ### run newman tests
 .PHONY:newman
 
 
-fwd_db: ### port forward to db
+db: ### port forward to db
 	kubectl port-forward pod/${RELEASE_NAME}-postgresql-0 5432:5432 -n ${NAMESPACE}
