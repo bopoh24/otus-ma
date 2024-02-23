@@ -27,10 +27,10 @@ type Offer struct {
 	ID           int64       `json:"id,omitempty"`
 	ServiceID    int         `json:"service_id"`
 	ServiceName  string      `json:"service_name,omitempty"`
-	Customer     string      `json:"customer"`
-	CompanyID    int64       `json:"company_id"`
+	Customer     string      `json:"customer,omitempty"`
+	CompanyID    int64       `json:"company_id,omitempty"`
 	CompanyName  string      `json:"company_name"`
-	Location     []float64   `json:"location"`
+	Location     []float64   `json:"location,omitempty"`
 	Datetime     time.Time   `json:"datetime"`
 	Description  string      `json:"description"`
 	Price        float64     `json:"price"`

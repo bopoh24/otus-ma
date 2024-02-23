@@ -6,12 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Nerzal/gocloak/v13"
+	bookingModel "github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
 	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -299,12 +301,69 @@ func (a *App) handlerGetOffers(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	resp, err := a.bookingClient.Post(r.Context(), fmt.Sprintf("/booking/offers/%s/book", id), nil, r.Header.Clone())
+	// book offer
+	respBooking, err := a.bookingClient.Post(r.Context(),
+		fmt.Sprintf("/booking/offers/%s/book", id), nil, r.Header.Clone())
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	defer resp.Body.Close()
-	w.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(w, resp.Body)
+	defer respBooking.Body.Close()
+
+	if respBooking.StatusCode != http.StatusOK {
+		w.WriteHeader(respBooking.StatusCode)
+		_, err = io.Copy(w, respBooking.Body)
+		return
+	}
+	var offer bookingModel.Offer
+	err = json.NewDecoder(respBooking.Body).Decode(&offer)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	slog.Info("Offer reserved", "id", id)
+
+	// make payment
+	respPayment, err := a.paymentClient.Post(r.Context(), "/payment/make", map[string]any{
+		"offer_id": offer.ID,
+		"amount":   offer.Price,
+	}, r.Header.Clone())
+	if err != nil {
+		// cancel booking
+		slog.Error("Error making payment", "err", err)
+		a.bookingClient.Put(r.Context(), fmt.Sprintf("/booking/offers/%s/reset", id), nil, nil)
+		slog.Info("Offer reset", "id", id)
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer respPayment.Body.Close()
+	if respPayment.StatusCode != http.StatusOK {
+		slog.Error("Error making payment", "code", respPayment.StatusCode)
+		// cancel booking
+		a.bookingClient.Put(r.Context(), fmt.Sprintf("/booking/offers/%s/reset", id), nil, nil)
+		slog.Info("Offer reset", "id", id)
+		w.WriteHeader(respPayment.StatusCode)
+		_, err = io.Copy(w, respPayment.Body)
+		return
+	}
+
+	slog.Info("Payment made", "id", id)
+
+	// mark booking as paid
+	respBookingPaid, err := a.bookingClient.Put(r.Context(),
+		fmt.Sprintf("/booking/offers/%s/paid", id), nil, r.Header.Clone())
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	defer respBookingPaid.Body.Close()
+	if respBookingPaid.StatusCode != http.StatusOK {
+		w.WriteHeader(respBookingPaid.StatusCode)
+		_, err = io.Copy(w, respBookingPaid.Body)
+		return
+	}
+	slog.Info("Offer paid", "id", id)
+	w.WriteHeader(http.StatusOK)
 }

@@ -22,6 +22,7 @@ type App struct {
 	log            *slog.Logger
 	server         *http.Server
 	bookingClient  client.HttpRequester
+	paymentClient  client.HttpRequester
 }
 
 func New(conf *config.Config, log *slog.Logger) *App {
@@ -31,6 +32,7 @@ func New(conf *config.Config, log *slog.Logger) *App {
 		keycloakClient: gocloak.NewClient(conf.Keycloak.URL),
 		server:         &http.Server{Addr: ":80"},
 		bookingClient:  client.NewHttpClient(conf.BookingUrl),
+		paymentClient:  client.NewHttpClient(conf.PaymentUrl),
 	}
 }
 
@@ -50,19 +52,24 @@ func (a *App) Run(ctx context.Context) error {
 
 	r := router.New("customer")
 	r.Route("/customer", func(r chi.Router) {
+		// auth
 		r.Post("/login", a.handlerLogin)
 		r.Post("/logout", a.hanlderLogout)
 		r.Post("/register", a.handlerRegister)
 		r.Post("/refresh", a.handlerRefresh)
 
+		// profile
 		r.Get("/profile", a.handlerProfile)
 		r.Put("/profile", a.handlerProfileUpdate)
 		r.Post("/phone/verify", a.handlerRequestPhoneVerification)
 		r.Post("/phone/verify/check", a.handlerVerifyPhone)
 		r.Get("/{id}", a.handlerCustomerByID)
 
+		// booking
 		r.Get("/offers", a.handlerGetOffers)
+		r.Get("/offers/my", a.handlerGetMyOffers)
 		r.Post("/offer/{id}/book", a.handlerBookOffer)
+
 	})
 	// set base context
 	a.server.BaseContext = func(listener net.Listener) context.Context {

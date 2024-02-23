@@ -29,6 +29,7 @@ type Config struct {
 	Postgres   Postgres
 	Keycloak   Keycloak
 	BookingUrl string `env:"BOOKING_URL" env-default:"http://localhost:8080"`
+	PaymentUrl string `env:"PAYMENT_URL" env-default:"http://localhost:8081"`
 }
 
 // New returns a new Config struct

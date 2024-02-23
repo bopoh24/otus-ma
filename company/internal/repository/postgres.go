@@ -46,7 +46,7 @@ func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName
 		Columns("name", "description", "address", "phone", "email", "active").
 		Values(company.Name, company.Description, company.Address,
 			company.Phone, company.Email, company.Active).
-		Suffix("RETURNING id")
+		Suffix("RETURNING id").RunWith(tx)
 	row := q.QueryRowContext(ctx)
 	var companyId int64
 	err = row.Scan(&companyId)
@@ -63,7 +63,7 @@ func (r *Repository) CompanyCreate(ctx context.Context, userId, email, firstName
 	}
 	q = r.psql.Builder().Insert("company_manager").
 		Columns("company_id", "user_id", "email", "first_name", "last_name", "role", "active").
-		Values(manager.CompanyID, manager.UserID, manager.Email, firstName, lastName, manager.Role, manager.Active)
+		Values(manager.CompanyID, manager.UserID, manager.Email, firstName, lastName, manager.Role, manager.Active).RunWith(tx)
 	_, err = q.ExecContext(ctx)
 	return companyId, err
 }

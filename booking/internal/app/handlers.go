@@ -7,7 +7,6 @@ import (
 	"github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/go-chi/chi/v5"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -244,7 +243,6 @@ func (a *App) handlerGetCompanyOffers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	slog.Info("page and limit", "page", page, "limit", limit)
 	offers, err := a.service.CompanyOffers(r.Context(), companyId, page, limit)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -259,17 +257,23 @@ func (a *App) handlerGetCustomerOffers(w http.ResponseWriter, r *http.Request) {
 		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
 		return
 	}
+	page := 1
 	pageStr := r.URL.Query().Get("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if pageStr != "" {
+		page, err = strconv.Atoi(pageStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
+	limit := 50
 	limitStr := r.URL.Query().Get("limit")
-	limit, err := strconv.Atoi(limitStr)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
-		return
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil {
+			helper.ErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
 	}
 	offers, err := a.service.CustomerOffers(r.Context(), claims.Id, page, limit)
 	if err != nil {
