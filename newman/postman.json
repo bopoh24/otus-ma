@@ -1,33 +1,29 @@
 {
 	"info": {
-		"_postman_id": "2584305e-92c8-4954-90af-791de6cf68b8",
-		"name": "HW_5",
+		"_postman_id": "2dd64095-5996-4424-81d5-95dc609eff40",
+		"name": "HW_8",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3360772",
-		"_collection_link": "https://www.postman.com/bopoh24/workspace/otus-ma/collection/3360772-2584305e-92c8-4954-90af-791de6cf68b8?action=share&source=collection_link&creator=3360772"
+		"_collection_link": "https://www.postman.com/bopoh24/workspace/booksvc/collection/3360772-2dd64095-5996-4424-81d5-95dc609eff40?action=share&source=collection_link&creator=3360772"
 	},
 	"item": [
 		{
-			"name": "Register user 1 [/v1/register]",
+			"name": "Register manager",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.collectionVariables.set(\"user1_email\", pm.variables.replaceIn(\"{{$randomEmail}}\"));",
-							"pm.collectionVariables.set(\"user1_password\", pm.variables.replaceIn(\"{{$randomPassword}}\"));",
-							""
+							"pm.test(\"Status OK\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Access token present\", function () {",
+							"    pm.expect(jsonData.access_token).exist",
+							"});",
+							"pm.collectionVariables.set(\"manager_access_token\", jsonData.access_token);",
+							"pm.collectionVariables.set(\"manager_refresh_token\", jsonData.refresh_token);"
 						],
 						"type": "text/javascript"
 					}
@@ -38,7 +34,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"{{user1_email}}\",\n    \"password\": \"{{user1_password}}\",\n    \"firstName\": \"{{$randomFirstName}}\",\n    \"lastName\": \"{{$randomLastName}}\"\n}",
+					"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"{{$randomPassword}}\",\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -46,13 +42,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{baseUrl}}/v1/register",
-					"protocol": "http",
+					"raw": "{{baseUrl}}/api/v1/company/register",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"api",
 						"v1",
+						"company",
 						"register"
 					]
 				}
@@ -60,14 +57,17 @@
 			"response": []
 		},
 		{
-			"name": "Get user profile without auth [/v1/users/me]",
+			"name": "Create company",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 401\", () => {",
-							"  pm.response.to.have.status(401);",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Company created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"    pm.collectionVariables.set(\"company_id\", jsonData.id);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -76,95 +76,159 @@
 			],
 			"request": {
 				"auth": {
-					"type": "oauth2",
-					"oauth2": [
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{manager_access_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"{{$randomCompanyName}}\",\n    \"address\": \"{{$randomStreetAddress}}\",\n    \"phone\": \"{{$randomPhoneNumber}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/company",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"company"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Company create offer",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Company created\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{manager_access_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"service_id\": 20,\n    \"price\": 12.5,\n    \"datetime\": \"2024-02-20T21:00:00Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/company/{{company_id}}/offers",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"company",
+						"{{company_id}}",
+						"offers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Company offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"    pm.collectionVariables.set(\"offer_id\", jsonData.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{manager_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/company/{{company_id}}/offers",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"company",
+						"{{company_id}}",
+						"offers"
+					],
+					"query": [
 						{
-							"key": "addTokenTo",
-							"value": "header",
-							"type": "string"
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "10",
+							"disabled": true
 						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/users/me",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"users",
-						"me"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Update user profile without auth [/v1/users/me]",
+			"name": "Customer register",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 401\", () => {",
-							"  pm.response.to.have.status(401);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"{{$randomUserName}}\",\n    \"firstName\": \"{{$randomFirstName}}\",\n    \"LastName\": \"{{$randomLastName}}\",\n    \"phone\": \"{{$randomPhoneNumber}}\",\n    \"description\": \"{{$randomJobDescriptor}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/users/me",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"users",
-						"me"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Login user 1 [/v1/login]",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"Status OK\", function() {",
+							"    pm.response.to.have.status(200);",
 							"});",
 							"",
 							"var jsonData = pm.response.json();",
 							"pm.test(\"Access token present\", function () {",
 							"    pm.expect(jsonData.access_token).exist",
 							"});",
-							"pm.collectionVariables.set(\"user1_access_token\", jsonData.access_token);",
-							"pm.collectionVariables.set(\"user1_refresh_token\", jsonData.refresh_token);",
-							""
+							"pm.collectionVariables.set(\"customer_access_token\", jsonData.access_token);",
+							"pm.collectionVariables.set(\"customer_refresh_token\", jsonData.refresh_token);"
 						],
 						"type": "text/javascript"
 					}
@@ -175,7 +239,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"{{user1_email}}\",\n    \"password\": \"{{user1_password}}\"\n}",
+					"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"{{$randomPassword}}\",\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -183,239 +247,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{baseUrl}}/v1/login",
-					"protocol": "http",
+					"raw": "{{baseUrl}}/api/v1/customer/register",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"api",
 						"v1",
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Update user 1 profile [/v1/users/me]",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"var jsonData = pm.response.json();",
-							"",
-							"pm.test(\"Changes applyed\", () => {",
-							"    pm.expect(jsonData.username).equal(pm.collectionVariables.get(\"user1_username\"));",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.collectionVariables.set(\"user1_username\", pm.variables.replaceIn(\"{{$randomUserName}}\"));",
-							"pm.collectionVariables.set(\"user1_firstName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));",
-							"pm.collectionVariables.set(\"user1_lastName\", pm.variables.replaceIn(\"{{$randomLastName}}\"));",
-							"pm.collectionVariables.set(\"user1_phone\", pm.variables.replaceIn(\"{{$randomPhoneNumber}}\"));",
-							"pm.collectionVariables.set(\"user1_description\",pm.variables.replaceIn(\"{{$randomJobDescriptor}}\"));",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{user1_access_token}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"{{user1_username}}\",\n    \"firstName\": \"{{user1_firstName}}\",\n    \"lastName\": \"{{user1_lastName}}\",\n    \"phone\": \"{{user1_phone}}\",\n    \"description\": \"{{user1_description}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/users/me",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"users",
-						"me"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get user 1 profile [/v1/users/me]",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"var jsonData = pm.response.json();",
-							"",
-							"pm.test(\"Email is the same\", ()=> {",
-							"    pm.expect(jsonData.email).equal(pm.collectionVariables.get(\"user1_email\").toLowerCase());",
-							"});",
-							"pm.test(\"External ID is not null\", () => {",
-							"    pm.expect(jsonData.externalId).exist.not.empty;",
-							"})",
-							"",
-							"pm.test(\"Profile data updated correct\", ()=> {",
-							"    pm.expect(jsonData.username).equal(pm.collectionVariables.get(\"user1_username\"));",
-							"    pm.expect(jsonData.firstName).equal(pm.collectionVariables.get(\"user1_firstName\"));",
-							"    pm.expect(jsonData.lastName).equal(pm.collectionVariables.get(\"user1_lastName\"));",
-							"    pm.expect(jsonData.phone).equal(pm.collectionVariables.get(\"user1_phone\"));",
-							"})"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [
-					{
-						"warning": "This is a duplicate header and will be overridden by the Authorization header generated by Postman.",
-						"key": "Authorization",
-						"value": "Bearer {{user1_access_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/users/me",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"users",
-						"me"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Logout user 1 [v1/logout]",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 204\", () => {",
-							"  pm.response.to.have.status(204);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"refreshToken\": \"{{user1_refresh_token}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/logout",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
-						"logout"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Register user 2 [/v1/register]",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.collectionVariables.set(\"user2_email\", pm.variables.replaceIn(\"{{$randomEmail}}\"));",
-							"pm.collectionVariables.set(\"user2_password\", pm.variables.replaceIn(\"{{$randomPassword}}\"));",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"email\": \"{{user2_email}}\",\n    \"password\": \"{{user2_password}}\",\n    \"firstName\": \"{{$randomFirstName}}\",\n    \"lastName\": \"{{$randomLastName}}\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://{{baseUrl}}/v1/register",
-					"protocol": "http",
-					"host": [
-						"{{baseUrl}}"
-					],
-					"path": [
-						"v1",
+						"customer",
 						"register"
 					]
 				}
@@ -423,22 +262,15 @@
 			"response": []
 		},
 		{
-			"name": "Login user 2 [/v1/login]",
+			"name": "Customer create account",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"Status created\", function() {",
+							"    pm.response.to.have.status(201);",
 							"});",
-							"",
-							"var jsonData = pm.response.json();",
-							"pm.test(\"Access token present\", function () {",
-							"    pm.expect(jsonData.access_token).exist",
-							"});",
-							"pm.collectionVariables.set(\"user2_access_token\", jsonData.access_token);",
-							"pm.collectionVariables.set(\"user2_refresh_token\", jsonData.refresh_token);",
 							""
 						],
 						"type": "text/javascript"
@@ -447,10 +279,243 @@
 			],
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/payment/create-account",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"payment",
+						"create-account"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer balance",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/payment/balance",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"payment",
+						"balance"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer search offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Offer in a list\", function() {",
+							"    pm.expect(jsonData).length.gt(0)",
+							"    pm.collectionVariables.set(\"offer_id\", jsonData[jsonData.length-1].id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/offers?service_id=20&from=2024-02-20T18:00:00Z&to=2024-02-20T21:00:00Z",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"offers"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "10",
+							"disabled": true
+						},
+						{
+							"key": "service_id",
+							"value": "20"
+						},
+						{
+							"key": "from",
+							"value": "2024-02-20T18:00:00Z"
+						},
+						{
+							"key": "to",
+							"value": "2024-02-20T21:00:00Z"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer book offer with no money",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.test(\"No money to create offer\", function() {",
+							"    pm.expect(jsonData).to.have.property(\"error\");",
+							"    pm.expect(jsonData.error).eq(\"insufficient funds\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/offer/{{offer_id}}/book",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"offer",
+						"{{offer_id}}",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer booked offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"No offers\", function(){",
+							"    pm.expect(jsonData).length(0);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/offers/my",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"offers",
+						"my"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer top-up balance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\": \"{{user2_email}}\",\n    \"password\": \"{{user2_password}}\"\n}",
+					"raw": "{\n    \"amount\": 20.0\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -458,69 +523,105 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{baseUrl}}/v1/login",
-					"protocol": "http",
+					"raw": "{{baseUrl}}/api/v1/customer/payment/top-up",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"api",
 						"v1",
-						"login"
+						"customer",
+						"payment",
+						"top-up"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Get user 2 profile [/v1/users/me]",
+			"name": "Customer book offer with enough money",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Status code is 200\", () => {",
-							"  pm.response.to.have.status(200);",
-							"});",
-							"",
-							"var jsonData = pm.response.json();",
-							"",
-							"pm.test(\"Email is the same\", ()=> {",
-							"    pm.expect(jsonData.email).equal(pm.collectionVariables.get(\"user2_email\").toLowerCase());",
-							"});",
-							"pm.test(\"External ID is not null\", () => {",
-							"    pm.expect(jsonData.externalId).exist.not.empty;",
-							"})",
-							"",
-							"pm.test(\"Profile data is correct\", ()=> {",
-							"    pm.expect(jsonData.username).not.equal(pm.collectionVariables.get(\"user1_username\"));",
-							"})"
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
 						],
 						"type": "text/javascript"
 					}
 				}
 			],
 			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
+				"method": "POST",
 				"header": [
 					{
 						"key": "Authorization",
-						"value": "Bearer {{user2_access_token}}",
+						"value": "Bearer {{customer_access_token}}",
 						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://{{baseUrl}}/v1/users/me",
-					"protocol": "http",
+					"raw": "{{baseUrl}}/api/v1/customer/offer/{{offer_id}}/book",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
+						"api",
 						"v1",
-						"users",
-						"me"
+						"customer",
+						"offer",
+						"{{offer_id}}",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer booked offers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status OK\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Offer booked\", function(){",
+							"    pm.expect(jsonData).length(1);",
+							"    pm.expect(jsonData[0].id).eq(pm.collectionVariables.get(\"offer_id\"))",
+							"    pm.expect(jsonData[0].status).eq(\"paid\")",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/offers/my",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"offers",
+						"my"
 					]
 				}
 			},
@@ -554,55 +655,31 @@
 			"type": "string"
 		},
 		{
-			"key": "user1_email",
+			"key": "manager_access_token",
 			"value": ""
 		},
 		{
-			"key": "user1_password",
+			"key": "manager_refresh_token",
 			"value": ""
 		},
 		{
-			"key": "user2_email",
+			"key": "company_id",
 			"value": ""
 		},
 		{
-			"key": "user2_password",
+			"key": "offer_id",
 			"value": ""
 		},
 		{
-			"key": "user1_access_token",
+			"key": "customer_access_token",
 			"value": ""
 		},
 		{
-			"key": "user1_refresh_token",
+			"key": "customer_refresh_token",
 			"value": ""
 		},
 		{
-			"key": "user1_username",
-			"value": ""
-		},
-		{
-			"key": "user1_firstName",
-			"value": ""
-		},
-		{
-			"key": "user1_lastName",
-			"value": ""
-		},
-		{
-			"key": "user1_phone",
-			"value": ""
-		},
-		{
-			"key": "user1_description",
-			"value": ""
-		},
-		{
-			"key": "user2_access_token",
-			"value": ""
-		},
-		{
-			"key": "user2_refresh_token",
+			"key": "offrer_id",
 			"value": ""
 		}
 	]

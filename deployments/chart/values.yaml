@@ -186,7 +186,7 @@ krakend:
         enabled: true
         className: nginx
         hosts:
-        - host: booksvc.com
+        - host: arch.homework
           paths:
           - path: /
             pathType: ImplementationSpecific
