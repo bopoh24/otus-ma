@@ -174,7 +174,7 @@ down_ctrl:
 # Newman
 newman: ### run newman tests
 	@echo "Running newman tests..."
-	newman run newman/postman_6.json
+	newman run newman/postman.json
 .PHONY:newman
 
 
