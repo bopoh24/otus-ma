@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-configmap
+data:
+  customer_realm.json: |-
+    {{- $.Files.Get "config/keycloak/customer_realm.json" | nindent 6 }}
+
+  company_realm.json: |-
+    {{- $.Files.Get "config/keycloak/company_realm.json" | nindent 6 }}
+

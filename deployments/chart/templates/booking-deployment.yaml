@@ -1,0 +1,87 @@
+{{- if .Values.bookingService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-booking
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-booking
+spec:
+  {{- if not .Values.bookingService.autoscaling.enabled }}
+  replicas: {{ .Values.bookingService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-booking
+  template:
+    metadata:
+      {{- with .Values.bookingService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-booking
+        date: "{{ now | unixEpoch }}"
+    spec:
+      {{- with .Values.bookingService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.bookingService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: booking
+          securityContext:
+            {{- toYaml .Values.bookingService.securityContext | nindent 12 }}
+          image: "{{ .Values.bookingService.image.repository }}:{{ .Values.bookingService.image.tag }}"
+          imagePullPolicy: {{ .Values.bookingService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.bookingService.resources | nindent 12 }}
+          env:
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+
+            - name: POSTGRES_DB
+              value: booking
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+
+
+      {{- with .Values.bookingService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bookingService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bookingService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

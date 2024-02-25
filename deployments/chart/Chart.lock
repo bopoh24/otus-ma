@@ -1,0 +1,21 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.2.5
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 26.11.3
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.2.1
+- name: krakend
+  repository: https://helm.equinixmetal.com
+  version: v0.1.27
+- name: mailhog
+  repository: https://codecentric.github.io/helm-charts
+  version: 5.2.3
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 51.4.0
+digest: sha256:bde87e5be8858cf3244f812105834fab83c55c96e564289ba73ecd1e867d1793
+generated: "2024-02-24T14:00:33.823226+02:00"

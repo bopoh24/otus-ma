@@ -1,0 +1,18 @@
+{{- if .Values.notifierService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Release.Name}}-notifier
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-notifier
+spec:
+  type: {{ .Values.notifierService.service.type }}
+  ports:
+    - port: {{ .Values.notifierService.service.port }}
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "app.selectorLabels" . | nindent 4 }}-notifier
+
+{{- end }}

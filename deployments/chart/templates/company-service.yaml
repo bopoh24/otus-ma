@@ -1,0 +1,18 @@
+{{- if .Values.companyService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Release.Name}}-company
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-company
+spec:
+  type: {{ .Values.companyService.service.type }}
+  ports:
+    - port: {{ .Values.companyService.service.port }}
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "app.selectorLabels" . | nindent 4 }}-company
+
+{{- end }}

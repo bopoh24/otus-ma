@@ -1,0 +1,13 @@
+Application URLs:
+
+Keycloak:
+    http://{{.Values.keycloak.ingress.hostname}}
+App:
+    {{- range .Values.krakend.ingress.hosts}}
+     http://{{- .host}}
+     {{- end}}
+
+
+
+
+

@@ -1,0 +1,75 @@
+{{- if .Values.notifierService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-notifier
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-notifier
+spec:
+  {{- if not .Values.notifierService.autoscaling.enabled }}
+  replicas: {{ .Values.notifierService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-notifier
+  template:
+    metadata:
+      {{- with .Values.notifierService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-notifier
+        date: "{{ now | unixEpoch }}"
+    spec:
+      {{- with .Values.notifierService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.notifierService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: notifier
+          securityContext:
+            {{- toYaml .Values.notifierService.securityContext | nindent 12 }}
+          image: "{{ .Values.notifierService.image.repository }}:{{ .Values.notifierService.image.tag }}"
+          imagePullPolicy: {{ .Values.notifierService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.notifierService.resources | nindent 12 }}
+          env:
+            - name: SMTP_HOST
+              value: {{ .Values.notifierService.smtp.host }}
+            - name: SMTP_PORT
+              value: {{ .Values.notifierService.smtp.port | quote }}
+            - name: SMTP_USERNAME
+              value: {{ .Values.notifierService.smtp.user }}
+            - name: SMTP_PASSWORD
+              value: {{ .Values.notifierService.smtp.password }}
+            - name: SMTP_FROM
+              value: {{ .Values.notifierService.smtp.from }}
+
+      {{- with .Values.notifierService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.notifierService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.notifierService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

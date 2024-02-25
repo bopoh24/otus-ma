@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS service;
+DROP TABLE IF EXISTS offer;
+DROP TYPE IF EXISTS offer_status;

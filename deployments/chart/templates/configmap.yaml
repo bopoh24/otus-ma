@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-customer
+data:
+  app-name: "{{ .Values.appConfig.name }} (customer service)"
+  app-log-level: "{{ .Values.appConfig.logLevel }}"
+  app-version: "{{ .Chart.AppVersion }} - {{.Values.customerService.image.tag}}"

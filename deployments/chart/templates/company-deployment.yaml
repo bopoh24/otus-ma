@@ -1,0 +1,122 @@
+{{- if .Values.companyService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Release.Name}}-company
+  labels:
+    {{- include "app.labels" . | nindent 4 }}-company
+spec:
+  {{- if not .Values.companyService.autoscaling.enabled }}
+  replicas: {{ .Values.companyService.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}-company
+  template:
+    metadata:
+      {{- with .Values.companyService.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "app.selectorLabels" . | nindent 8 }}-company
+        date: "{{ now | unixEpoch }}"
+    spec:
+      {{- with .Values.companyService.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.companyService.podSecurityContext | nindent 8 }}
+      containers:
+        - name: company
+          securityContext:
+            {{- toYaml .Values.companyService.securityContext | nindent 12 }}
+          image: "{{ .Values.companyService.image.repository }}:{{ .Values.companyService.image.tag }}"
+          imagePullPolicy: {{ .Values.companyService.image.pullPolicy }}
+          ports:
+            - name: http-srv
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http-srv
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http-srv
+          resources:
+            {{- toYaml .Values.companyService.resources | nindent 12 }}
+          env:
+
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbHost
+
+            - name: POSTGRES_DB
+              value: company
+
+            - name: POSTRGES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbUsername
+
+            - name: POSTRGES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: dbPassword
+
+            - name: KEYCLOAK_URL
+              value: http://{{.Release.Name}}-keycloak.{{.Release.Namespace}}.svc.cluster.local
+
+            - name: KEYCLOAK_REALM
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCompanyRealm
+
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCompanyClientId
+
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakCompanyClientSecret
+
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminUser
+
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: keycloakAdminPassword
+
+            - name: BOOKING_URL
+              value: http://{{.Release.Name}}-booking.{{.Release.Namespace}}.svc.cluster.local
+
+      {{- with .Values.companyService.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.companyService.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.companyService.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
