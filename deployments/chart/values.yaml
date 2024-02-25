@@ -216,7 +216,7 @@ mailhog:
                 pathType: Prefix
 
 kube-prometheus-stack:
-  enabled: false
+  enabled: true
   prometheus:
     prometheusSpec:
       serviceMonitorSelectorNilUsesHelmValues: false

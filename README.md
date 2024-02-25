@@ -23,6 +23,16 @@ Pегистрируется новый бизнес-пользователь, с
 
 ![Mailhog](./mailhog.jpg?raw=true "Tests")
 
+*Имя хоста для Mailhog `mailhog.booksvc.com`*
+
+
+#### Схема успешного формирования заказа услуги
+
+
+![Sequence](./booking_ok.jpeg?raw=true "Tests")
+
+
+
 
 ### Описание приложения
 
