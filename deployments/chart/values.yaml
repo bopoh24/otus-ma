@@ -188,7 +188,7 @@ keycloak:
   ingress:
     enabled: true
     ingressClassName: nginx
-    hostname: auth.booksvc.com
+    hostname: id.booksvc.com
 
 
 krakend:
