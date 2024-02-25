@@ -65,6 +65,9 @@ Pегистрируется новый бизнес-пользователь, с
     
     make down
 
+Установка ingress-nginx контроллера
+
+    make up_ctrl
 
 
 
@@ -84,35 +87,3 @@ Pегистрируется новый бизнес-пользователь, с
 
 
 
-
-### Установка ingress-nginx контроллера с метриками
-
-    kubectl create namespace m && \
-    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx/ && \
-    helm repo update && helm install nginx ingress-nginx/ingress-nginx --namespace m -f nginx-ingress.yaml
-
-
-
-## Остальные команды
-
-    make help
-
-## Установка зависимостей
-
-    brew install helm
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-
-### KrakenD
-
-    helm repo add equinixmetal https://helm.equinixmetal.com
-    helm repo update
-
-### MailHog
-
-    helm repo add codecentric https://codecentric.github.io/helm-charts
-    helm repo update
-
-### Prometheus и Grafana
-
-    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-    helm repo update
