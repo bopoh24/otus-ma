@@ -1,9 +1,6 @@
 # BOOSVC
 
 
-## Сервис бронирования услуг
-
-
 ![Sequence](./scheme.jpeg?raw=true "App scheme")
 
 
