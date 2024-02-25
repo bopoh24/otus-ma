@@ -8,11 +8,13 @@ import (
 	"github.com/bopoh24/ma_1/customer/internal/service"
 	"github.com/bopoh24/ma_1/pkg/http/client"
 	"github.com/bopoh24/ma_1/pkg/http/router"
+	"github.com/bopoh24/ma_1/pkg/kafka/producer"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
 	"log/slog"
 	"net"
 	"net/http"
+	"strings"
 )
 
 type App struct {
@@ -21,8 +23,6 @@ type App struct {
 	service        *service.Service
 	log            *slog.Logger
 	server         *http.Server
-	bookingClient  client.HttpRequester
-	paymentClient  client.HttpRequester
 }
 
 func New(conf *config.Config, log *slog.Logger) *App {
@@ -31,12 +31,11 @@ func New(conf *config.Config, log *slog.Logger) *App {
 		conf:           conf,
 		keycloakClient: gocloak.NewClient(conf.Keycloak.URL),
 		server:         &http.Server{Addr: ":80"},
-		bookingClient:  client.NewHttpClient(conf.BookingUrl),
-		paymentClient:  client.NewHttpClient(conf.PaymentUrl),
 	}
 }
 
 func (a *App) Run(ctx context.Context) error {
+
 	// init repository
 	repo, err := repository.New(a.conf.Postgres)
 	if err != nil {
@@ -48,7 +47,17 @@ func (a *App) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	a.service = service.New(repo, phoneVerifier)
+
+	prod, err := producer.NewKafkaProducer(strings.Split(a.conf.Kafka.Hosts, ","), a.log)
+	if err != nil {
+		return err
+	}
+
+	a.service = service.New(repo, prod,
+		phoneVerifier,
+		client.NewHttpClient(a.conf.CompanyUrl),
+		client.NewHttpClient(a.conf.BookingUrl),
+		client.NewHttpClient(a.conf.PaymentUrl))
 
 	r := router.New("customer")
 	r.Route("/customer", func(r chi.Router) {
@@ -66,8 +75,6 @@ func (a *App) Run(ctx context.Context) error {
 		r.Get("/{id}", a.handlerCustomerByID)
 
 		// booking
-		r.Get("/offers", a.handlerGetOffers)
-		r.Get("/offers/my", a.handlerGetMyOffers)
 		r.Post("/offer/{id}/book", a.handlerBookOffer)
 
 	})
@@ -91,4 +98,5 @@ func (a *App) Close(ctx context.Context) {
 	} else {
 		a.log.Info("Server closed")
 	}
+
 }

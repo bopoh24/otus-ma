@@ -4,15 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/Nerzal/gocloak/v13"
-	bookingModel "github.com/bopoh24/ma_1/booking/pkg/model"
 	"github.com/bopoh24/ma_1/customer/internal/model"
 	"github.com/bopoh24/ma_1/customer/internal/repository"
+	notifierModel "github.com/bopoh24/ma_1/notifier/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/http/helper"
 	"github.com/bopoh24/ma_1/pkg/verifier/phone"
 	"github.com/go-chi/chi/v5"
-	"io"
 	"log/slog"
 	"net/http"
 )
@@ -283,86 +281,80 @@ func (a *App) handlerVerifyPhone(w http.ResponseWriter, r *http.Request) {
 	helper.JSONResponse(w, http.StatusOK, map[string]string{"result": "phone verified"})
 }
 
-func (a *App) handlerGetOffers(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.RawQuery
-	if q != "" {
-		q = "?" + q
-	}
-
-	resp, err := a.bookingClient.Get(r.Context(), fmt.Sprintf("/booking/offers%s", q), nil)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	defer resp.Body.Close()
-	w.WriteHeader(resp.StatusCode)
-	_, err = io.Copy(w, resp.Body)
-}
-
 func (a *App) handlerBookOffer(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
+
+	claims, err := helper.ExtractClaims(r)
+	if err != nil {
+		helper.ErrorResponse(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+
 	// book offer
-	respBooking, err := a.bookingClient.Post(r.Context(),
-		fmt.Sprintf("/booking/offers/%s/book", id), nil, r.Header.Clone())
+	offer, status, err := a.service.BookOffer(r.Context(), id, r.Header.Clone())
+	if err != nil {
+		helper.ErrorResponse(w, status, err.Error())
+		return
+	}
+	offer.ServiceName, err = a.service.ServiceNameById(r.Context(), offer.ServiceID)
 	if err != nil {
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
-	}
-	defer respBooking.Body.Close()
 
-	if respBooking.StatusCode != http.StatusOK {
-		w.WriteHeader(respBooking.StatusCode)
-		_, err = io.Copy(w, respBooking.Body)
-		return
 	}
-	var offer bookingModel.Offer
-	err = json.NewDecoder(respBooking.Body).Decode(&offer)
-	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	slog.Info("Offer reserved", "id", id)
 
-	// make payment
-	respPayment, err := a.paymentClient.Post(r.Context(), "/payment/make", map[string]any{
-		"offer_id": offer.ID,
-		"amount":   offer.Price,
-	}, r.Header.Clone())
+	notification, err := a.service.PrepareNotification(r.Context(), claims.Id, offer.CompanyID)
 	if err != nil {
-		// cancel booking
-		slog.Error("Error making payment", "err", err)
-		a.bookingClient.Put(r.Context(), fmt.Sprintf("/booking/offers/%s/reset", id), nil, nil)
-		slog.Info("Offer reset", "id", id)
 		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	defer respPayment.Body.Close()
-	if respPayment.StatusCode != http.StatusOK {
-		slog.Error("Error making payment", "code", respPayment.StatusCode)
-		// cancel booking
-		a.bookingClient.Put(r.Context(), fmt.Sprintf("/booking/offers/%s/reset", id), nil, nil)
-		slog.Info("Offer reset", "id", id)
-		w.WriteHeader(respPayment.StatusCode)
-		_, err = io.Copy(w, respPayment.Body)
+	notification.Offer = *offer
+
+	statusCode, err := a.service.MakePayment(r.Context(), *offer, r.Header.Clone())
+	if err != nil {
+		slog.Error("Error making payment", "err", err)
+		notification.Type = notifierModel.BookingFailed
+		notification.Offer.Status = "failed"
+		notification.FailReason = err.Error()
+		// send notification
+
+		if err := a.service.SendNotification(&notification); err != nil {
+			slog.Error("Error sending notification", "err", err)
+		}
+		// reset booking
+		if _, err := a.service.BookingReset(r.Context(), offer.ID); err != nil {
+			slog.Error("Error resetting booking", "err", err)
+		}
+
+		helper.ErrorResponse(w, statusCode, err.Error())
 		return
 	}
 
 	slog.Info("Payment made", "id", id)
 
 	// mark booking as paid
-	respBookingPaid, err := a.bookingClient.Put(r.Context(),
-		fmt.Sprintf("/booking/offers/%s/paid", id), nil, r.Header.Clone())
+	status, err = a.service.BookingPaid(r.Context(), offer.ID)
+
 	if err != nil {
-		helper.ErrorResponse(w, http.StatusInternalServerError, err.Error())
+		slog.Error("Error marking booking as paid", "err", err)
+		notification.Type = notifierModel.BookingFailed
+		notification.Offer.Status = "failed"
+		notification.FailReason = err.Error()
+		// send notification
+		err = a.service.SendNotification(&notification)
+		if err != nil {
+			slog.Error("Error sending notification", "err", err)
+		}
+		helper.ErrorResponse(w, status, err.Error())
 		return
 	}
-
-	defer respBookingPaid.Body.Close()
-	if respBookingPaid.StatusCode != http.StatusOK {
-		w.WriteHeader(respBookingPaid.StatusCode)
-		_, err = io.Copy(w, respBookingPaid.Body)
-		return
+	notification.Type = notifierModel.BookingPaid
+	notification.Offer.Status = "paid"
+	// send notification
+	err = a.service.SendNotification(&notification)
+	if err != nil {
+		slog.Error("Error sending notification", "err", err)
 	}
 	slog.Info("Offer paid", "id", id)
 	w.WriteHeader(http.StatusOK)

@@ -18,7 +18,7 @@ import (
 
 func createMockApp(repo service.Repository, verifier phone.Verifier) *App {
 	return &App{
-		service: service.New(repo, verifier),
+		service: service.New(repo, nil, verifier, nil, nil, nil),
 	}
 }
 

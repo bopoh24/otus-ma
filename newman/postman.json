@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "2dd64095-5996-4424-81d5-95dc609eff40",
-		"name": "HW_8",
+		"name": "HW_9",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3360772",
 		"_collection_link": "https://www.postman.com/bopoh24/workspace/booksvc/collection/3360772-2dd64095-5996-4424-81d5-95dc609eff40?action=share&source=collection_link&creator=3360772"
@@ -232,6 +232,18 @@
 						],
 						"type": "text/javascript"
 					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const email = pm.variables.replaceIn(\"{{$randomEmail}}\")",
+							"const password = pm.variables.replaceIn(\"{{$randomPassword}}\");",
+							"pm.collectionVariables.set(\"customer_email\", email);",
+							"pm.collectionVariables.set(\"customer_password\", password);"
+						],
+						"type": "text/javascript"
+					}
 				}
 			],
 			"request": {
@@ -239,7 +251,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"{{$randomEmail}}\",\n    \"password\": \"{{$randomPassword}}\",\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\"\n}",
+					"raw": "{\n    \"email\": \"{{customer_email}}\",\n    \"password\": \"{{customer_password}}\",\n    \"first_name\": \"{{$randomFirstName}}\",\n    \"last_name\": \"{{$randomLastName}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -256,6 +268,111 @@
 						"v1",
 						"customer",
 						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status OK\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"pm.test(\"Access token present\", function () {",
+							"    pm.expect(jsonData.access_token).exist",
+							"});",
+							"pm.collectionVariables.set(\"customer_access_token\", jsonData.access_token);",
+							"pm.collectionVariables.set(\"customer_refresh_token\", jsonData.refresh_token);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"{{customer_email}}\",\n    \"password\": \"{{customer_password}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Customer profile",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status OK\", function() {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"var jsonData = pm.response.json();",
+							"",
+							"pm.test(\"Email is the same\", function() {",
+							"",
+							"    pm.expect(jsonData.email).eq(pm.collectionVariables.get(\"customer_email\").toLowerCase())",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{customer_access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/customer/profile",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"customer",
+						"profile"
 					]
 				}
 			},
@@ -680,6 +797,14 @@
 		},
 		{
 			"key": "offrer_id",
+			"value": ""
+		},
+		{
+			"key": "customer_email",
+			"value": ""
+		},
+		{
+			"key": "customer_password",
 			"value": ""
 		}
 	]

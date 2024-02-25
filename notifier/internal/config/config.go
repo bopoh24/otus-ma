@@ -15,9 +15,14 @@ type SMTP struct {
 	From     string `env:"SMTP_FROM" env-default:"no-reply@booksvc.com"`
 }
 
+type Kafka struct {
+	Hosts string `env:"KAFKA_HOSTS" env-default:"booksvc-kafka-controller-headless.booksvc:9092,booksvc-kafka-controller-headless.booksvc:9093,booksvc-kafka-controller-headless.booksvc:9094"`
+}
+
 type Config struct {
-	App  App
-	SMTP SMTP
+	App   App
+	SMTP  SMTP
+	Kafka Kafka
 }
 
 // New returns a new Config struct

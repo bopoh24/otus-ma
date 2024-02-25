@@ -4,18 +4,25 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"embed"
 	"fmt"
 	"github.com/bopoh24/ma_1/notifier/internal/config"
-	"github.com/bopoh24/ma_1/notifier/internal/model"
+	"github.com/bopoh24/ma_1/notifier/pkg/model"
 	mail "github.com/xhit/go-simple-mail/v2"
+	"strings"
 	"text/template"
 	"time"
 )
 
 type Service struct {
-	conf   config.SMTP
-	client *mail.SMTPClient
+	conf       config.SMTP
+	smtpServer *mail.SMTPServer
 }
+
+var (
+	//go:embed templates
+	templates embed.FS
+)
 
 // New returns a new Service instance
 func New(conf config.SMTP) (*Service, error) {
@@ -42,22 +49,27 @@ func New(conf config.SMTP) (*Service, error) {
 	// to skip TLS verification (useful for testing):
 	server.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-	// SMTP client
-	smtpClient, err := server.Connect()
-
-	if err != nil {
-		return nil, err
-	}
-	return &Service{conf: conf, client: smtpClient}, nil
+	return &Service{conf: conf, smtpServer: server}, nil
 }
 
 func (s *Service) sendEmail(to, subject, body string, cc ...string) error {
+
+	// SMTP client
+	smtpClient, err := s.smtpServer.Connect()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		smtpClient.Quit()
+		smtpClient.Close()
+	}()
+
 	email := mail.NewMSG()
 	email.SetFrom(s.conf.From).AddTo(to).SetSubject(subject).SetBody(mail.TextHTML, body)
 	if len(cc) > 0 {
 		email.AddCc(cc...)
 	}
-	err := email.Send(s.client)
+	err = email.Send(smtpClient)
 	if err != nil {
 		return fmt.Errorf("error sending email: %w", err)
 	}
@@ -65,37 +77,33 @@ func (s *Service) sendEmail(to, subject, body string, cc ...string) error {
 }
 
 func (s *Service) BookingFailed(notification model.BookingNotification) error {
-	notification.Status = "failed to pay"
-	return s.sendNotifications(notification)
+	return s.sendNotifications(notification, "failed to pay")
 }
 
-func (s *Service) BookingPaid(order model.BookingNotification) error {
-	order.Status = "paid"
-	return s.sendNotifications(order)
+func (s *Service) BookingPaid(notification model.BookingNotification) error {
+	return s.sendNotifications(notification, "paid")
 }
 
 func (s *Service) BookingSubmitted(notification model.BookingNotification) error {
-	notification.Status = "submitted"
-	return s.sendNotifications(notification)
+	return s.sendNotifications(notification, "submitted")
 }
 
 func (s *Service) BookingCompleted(notification model.BookingNotification) error {
-	notification.Status = "completed"
-	return s.sendNotifications(notification)
+	return s.sendNotifications(notification, "completed")
 }
 
 func (s *Service) BookingCancelledByCustomer(notification model.BookingNotification) error {
-	notification.Status = "cancelled by customer"
-	return s.sendNotifications(notification)
+	return s.sendNotifications(notification, "cancelled by customer")
 }
 
 func (s *Service) BookingCancelledByCompany(notification model.BookingNotification) error {
-	notification.Status = "cancelled by company"
-	return s.sendNotifications(notification)
+
+	return s.sendNotifications(notification, "cancelled by company")
 }
 
 func (s *Service) tplToString(templateName string, booking model.BookingNotification) (string, error) {
-	tpl, err := template.New(templateName).ParseFiles(templateName + ".gohtml")
+
+	tpl, err := template.New(templateName+".gohtml").ParseFS(templates, fmt.Sprintf("templates/%s.gohtml", templateName))
 	if err != nil {
 		return "", err
 	}
@@ -106,30 +114,35 @@ func (s *Service) tplToString(templateName string, booking model.BookingNotifica
 	return output.String(), nil
 }
 
-func (s *Service) sendNotifications(order model.BookingNotification) error {
-	cc := make([]string, 0, len(order.CompanyManagerContacts))
-	for _, c := range order.CompanyManagerContacts {
+func (s *Service) sendNotifications(notification model.BookingNotification, subject string) error {
+	notification.Status = subject
+
+	cc := make([]string, 0, len(notification.CompanyManagerContacts))
+	for _, c := range notification.CompanyManagerContacts {
 		cc = append(cc, c.Email)
 	}
-	body, err := s.tplToString("company", order)
-	if err != nil {
-		return err
-	}
-	// send email to company managers
-	err = s.sendEmail(order.CompanyContacts.Email, "Order paid", body, cc...)
+	body, err := s.tplToString("company", notification)
 	if err != nil {
 		return err
 	}
 
-	body, err = s.tplToString("customer", order)
+	subj := fmt.Sprintf("#%d OFFER - %s", notification.Offer.ID, strings.ToUpper(subject))
+
+	// send email to company managers
+	err = s.sendEmail(notification.CompanyContacts.Email, subj, body, cc...)
+	if err != nil {
+		return err
+	}
+
+	body, err = s.tplToString("customer", notification)
 	if err != nil {
 		return err
 	}
 	// send email to customer
-	return s.sendEmail(order.CustomerContacts.Email, "Order paid", body)
+	return s.sendEmail(notification.CustomerContacts.Email, subj, body)
 }
 
 // Close closes the Service
 func (s *Service) Close(_ context.Context) error {
-	return s.client.Quit()
+	return nil
 }

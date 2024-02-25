@@ -110,6 +110,8 @@ spec:
             - name: PAYMENT_URL
               value: http://{{.Release.Name}}-payment.{{.Release.Namespace}}.svc.cluster.local
 
+            - name: COMPANY_URL
+              value: http://{{.Release.Name}}-company.{{.Release.Namespace}}.svc.cluster.local
 
       {{- with .Values.customerService.nodeSelector }}
       nodeSelector:

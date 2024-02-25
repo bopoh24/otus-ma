@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/bopoh24/ma_1/company/internal/model"
+	"github.com/bopoh24/ma_1/company/pkg/model"
 )
 
 //go:generate mockgen -source service.go -destination ../../mocks/repository.go -package mock Repository

@@ -24,12 +24,18 @@ type Keycloak struct {
 	Password     string `env:"KEYCLOAK_PASSWORD" env-default:"admin"`
 }
 
+type Kafka struct {
+	Hosts string `env:"KAFKA_HOSTS" env-default:"booksvc-kafka-controller-headless.booksvc:9092,booksvc-kafka-controller-headless.booksvc:9093,booksvc-kafka-controller-headless.booksvc:9094"`
+}
+
 type Config struct {
 	App        App
 	Postgres   Postgres
 	Keycloak   Keycloak
+	Kafka      Kafka
 	BookingUrl string `env:"BOOKING_URL" env-default:"http://localhost:8080"`
 	PaymentUrl string `env:"PAYMENT_URL" env-default:"http://localhost:8081"`
+	CompanyUrl string `env:"COMPANY_URL" env-default:"http://localhost:8082"`
 }
 
 // New returns a new Config struct

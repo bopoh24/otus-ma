@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	offerModel "github.com/bopoh24/ma_1/booking/pkg/model"
-	"github.com/bopoh24/ma_1/notifier/internal/model"
+	"github.com/bopoh24/ma_1/notifier/pkg/model"
 	"net/http"
 )
 

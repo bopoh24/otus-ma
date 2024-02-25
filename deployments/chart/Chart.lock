@@ -2,6 +2,9 @@ dependencies:
 - name: postgresql
   repository: https://charts.bitnami.com/bitnami
   version: 13.2.5
+- name: kafka
+  repository: https://charts.bitnami.com/bitnami
+  version: 26.11.3
 - name: keycloak
   repository: https://charts.bitnami.com/bitnami
   version: 18.2.1
@@ -14,5 +17,5 @@ dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 51.4.0
-digest: sha256:d0eaee467b10819abc1c1cf7999a1249e2d8eec21e8a91035b0a856758294c17
-generated: "2024-02-15T17:33:08.893927+02:00"
+digest: sha256:bde87e5be8858cf3244f812105834fab83c55c96e564289ba73ecd1e867d1793
+generated: "2024-02-24T14:00:33.823226+02:00"

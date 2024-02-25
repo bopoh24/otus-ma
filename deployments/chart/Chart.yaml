@@ -29,6 +29,11 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
 
+  - name: kafka
+    version: 26.11.3
+    repository: https://charts.bitnami.com/bitnami
+    condition: kafka.enabled
+
   - name: keycloak
     repository: https://charts.bitnami.com/bitnami
     version: 18.2.1

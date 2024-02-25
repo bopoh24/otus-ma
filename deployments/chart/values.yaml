@@ -126,6 +126,19 @@ postgresql:
     serviceMonitor:
       enabled: true
 
+kafka:
+  enabled: true
+
+
+  listeners:
+    client:
+      protocol: PLAINTEXT
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
 
 keycloak:
   # customer client credentials

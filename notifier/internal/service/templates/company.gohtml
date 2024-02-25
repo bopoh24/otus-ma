@@ -7,6 +7,9 @@
         <h1>BOOKSVC</h1>
         {{if eq .Offer.Status "failed"}}
             <h3>Booking is {{.Status}}</h3>
+            {{if .FailReason}}
+                <p style="color: crimson">{{.FailReason}}</p>
+            {{end}}
         {{else}}
             <h3>#{{.Offer.ID}} Booking is {{.Status}}</h3>
         {{end}}
@@ -17,9 +20,11 @@
         <p>Datetime: {{.Offer.Datetime.Format "2006.01.02 15:04"}}</p>
         <p>Price: {{.Offer.Price}}</p>
         <hr/>
-        <h6>Customer contacts</h6>
+        <h3>Customer contacts</h3>
         <p>Name: {{.CustomerContacts.FirstName}} {{.CustomerContacts.LastName}}</p>
-        <p>Phone: {{.CustomerContacts.Phone}}</p>
+        {{if .CustomerContacts.Phone}}
+            <p>Phone: {{.CustomerContacts.Phone}}</p>
+        {{end}}
         <p>Email: {{.CustomerContacts.Email}}</p>
         <hr/>
         <p>Thank you for using BOOKSVC</p>

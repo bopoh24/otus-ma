@@ -7,7 +7,7 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/bopoh24/ma_1/company/internal/config"
-	"github.com/bopoh24/ma_1/company/internal/model"
+	"github.com/bopoh24/ma_1/company/pkg/model"
 	"github.com/bopoh24/ma_1/pkg/sql/builder"
 	_ "github.com/lib/pq"
 )

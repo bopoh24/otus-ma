@@ -10,9 +10,9 @@ package mock
 
 import (
 	context "context"
+	"github.com/bopoh24/ma_1/company/pkg/model"
 	reflect "reflect"
 
-	model "github.com/bopoh24/ma_1/company/internal/model"
 	gomock "go.uber.org/mock/gomock"
 )
 

@@ -996,12 +996,12 @@
       },
       "backend": [
         {
-          "url_pattern": "/customer/offers",
+          "url_pattern": "/booking/offers",
           "encoding": "no-op",
           "sd": "static",
           "method": "GET",
           "host": [
-            "http://booksvc-customer.booksvc.svc.cluster.local"
+            "http://booksvc-booking.booksvc.svc.cluster.local"
           ],
           "extra_config": {
             "backend/http": {
