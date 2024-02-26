@@ -85,5 +85,22 @@ Pегистрируется новый бизнес-пользователь, с
 ![Tests](./newman/screen3.jpg?raw=true "Tests")
 
 
+# Мониторинг
 
+
+    make grafana
+
+
+### Services
+
+![Services](./dashboard1.jpg?raw=true "Services")
+
+### PostgreSQL
+
+
+![PostgreSQL](./dashboard2.jpg?raw=true "PostgreSQL")
+
+### Kafka
+
+![Kafka](./dashboard3.jpg?raw=true "Kafka")
 

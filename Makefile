@@ -180,3 +180,7 @@ newman: ### run newman tests
 
 db: ### port forward to db
 	kubectl port-forward pod/${RELEASE_NAME}-postgresql-0 5432:5432 -n ${NAMESPACE}
+
+
+grafana: ### port forward to grafana
+	kubectl port-forward service/${RELEASE_NAME}-grafana 8080:80 -n ${NAMESPACE}

@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 appConfig:
-  name: Service booking
+  name: BOOKSVC
   logLevel: debug
 
 # Microservices configuration block (enabled by default)
@@ -126,16 +126,17 @@ postgresql:
     serviceMonitor:
       enabled: true
 
+
 kafka:
   enabled: true
-
 
   listeners:
     client:
       protocol: PLAINTEXT
 
   metrics:
-    enabled: true
+    kafka:
+      enabled: true
     serviceMonitor:
       enabled: true
 
@@ -177,6 +178,11 @@ keycloak:
   postgresql:
     enabled: false
 
+  metrics:
+    enabled: true
+    serviceMonitor:
+        enabled: true
+
   externalDatabase:
     port: 5432
     database: keycloak
@@ -203,6 +209,12 @@ krakend:
           paths:
           - path: /
             pathType: ImplementationSpecific
+    service:
+      metrics:
+        enabled: true
+    serviceMonitor:
+        enabled: true
+
 
 mailhog:
     enabled: true
@@ -220,3 +232,8 @@ kube-prometheus-stack:
   prometheus:
     prometheusSpec:
       serviceMonitorSelectorNilUsesHelmValues: false
+
+  grafana:
+    adminUser: admin
+    adminPassword: admin
+

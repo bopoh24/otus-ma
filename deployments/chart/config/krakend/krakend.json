@@ -3,6 +3,18 @@
   "version": 3,
   "name": "KrakenD - API Gateway",
   "extra_config": {
+    "telemetry/influx": {
+      "address": "http://localhost:8086",
+      "ttl": "25s",
+      "buffer_size": 100,
+      "db": "krakend_db",
+      "username": "user",
+      "password": "password"
+    },
+    "telemetry/metrics": {
+      "collection_time": "30s",
+      "listen_address": "127.0.0.1:8090"
+    },
     "security/cors": {
       "allow_origins": [
         "*"
